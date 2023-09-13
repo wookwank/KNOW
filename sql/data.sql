@@ -39,7 +39,7 @@ VALUES (1, 'awdeorio', 1, '2017-06-20 15:47:02'),
 
 INSERT INTO comments(commentid, owner, postid, text, created)
 VALUES (1, 'awdeorio', 3, '#chickensofinstagram', '2017-06-20 15:47:02'),
-(2, 'jflin', 3, 'I <3 chickens', '2017-06-20 15:47:02'),
+(2, 'jflinn', 3, 'I <3 chickens', '2017-06-20 15:47:02'),
 (3, 'michjc', 3, 'Cute overload!', '2017-06-20 15:47:02'),
 (4, 'awdeorio', 2, 'Sick #crossword', '2017-06-20 15:47:02'),
 (5, 'jflinn', 1, 'Walking the plank #chickensofinstagram', '2017-06-20 15:47:02'),
