@@ -34,19 +34,34 @@
                     </a>
                 </div>
                 <div>
-                    <a href="/posts/{{post.postid}}/">{{post.timestamp}}</a>
+                    <a href="/posts/{{post.postid}}/">
+                        {{ timestamp_handler(post.created) }}
+                    </a>
                 </div>
             </div>
             <img src={{post.filename}} alt="post {{post.postid}} image">
             <div class="content">
-                {% if post.likes == 1 %}
-                <p>{{post.likes}} like</p>
+                {% set like_count = namespace(value=0) %}
+                {% for like_row in likes %}
+                    {% if like_row.postid == post.postid %}
+                        {% set like_count.value = like_count.value + 1 %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if like_count.value == 1 %}
+                <p>{{like_count.value}} like</p>
                 {% else %}
-                <p>{{post.likes}} likes</p>
+                <p>{{like_count.value}} likes</p>
                 {% endif %}
+
                 {% for comment in comments %}
                     {% if comment.postid == post.postid %}
-                        <p><a href="/users/{{comment.owner}}/"><b>{{comment.owner}}</b></a> {{comment.text}}</p>
+                        <p>
+                            <a href="/users/{{comment.owner}}/">
+                                <b>{{comment.owner}}</b>
+                            </a>
+                            {{comment.text}}
+                        </p>
                     {% endif %}
                 {% endfor %}
             </div>
