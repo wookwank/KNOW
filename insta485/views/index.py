@@ -4,6 +4,7 @@ Insta485 index (main) view.
 URLs include:
 /
 """
+from flask import send_from_directory
 import flask
 import insta485
 
@@ -16,14 +17,23 @@ def show_index():
 
     # Query database
     logname = "awdeorio"
-    cur = connection.execute(
-        "SELECT username, fullname "
-        "FROM users "
-        "WHERE username != ?",
-        (logname, )
+    post = connection.execute(
+        "SELECT * FROM posts"
     )
-    users = cur.fetchall()
+    com = connection.execute(
+        "SELECT owner, text, postid FROM comments"
+    )
+    posts = post.fetchall()
+    comments = com.fetchall()
 
     # Add database info to context
-    context = {"users": users}
+    context = {
+        "logname" : logname, 
+        "posts" : posts,
+        "comments" : comments
+    }
     return flask.render_template("index.html", **context)
+
+@insta485.app.route('/')
+def static_file(filename):
+    return send_from_directory(insta485.app.config['UPLOAD_FOLDER'], filename, as_attachment=False)

@@ -1,9 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
-  <body>
-    <h1>Users</h1>
-    {% for user in users %}
-    <p>{{user.username}} {{user.fullname}}</p>
-    {% endfor %}
-  </body>
+    <head>
+        <title>insta485</title>
+        <link rel="stylesheet" type="text/css" href="../static/css/style.css">
+    </head>
+    <body>
+        <div class="topbar">
+            <div>
+                <a href="/">insta485</a>
+            </div>
+            <div class="topbar">
+                <a href="/explore/"><b>explore</b></a>
+                <div class="blank"></div>
+                <div> | </div>
+                <div class="blank"></div>
+                <a href="/users/{{logname}}/"><b>{{logname}}</b></a>
+            </div>
+        </div>
+        {% for post in posts %}
+        <div class="post">
+            <div class="topbar">
+                <div>
+                    <a href="/users/{{post.owner}}/">
+                        <div class="userimgname">
+                            <img src={{url_for('static_file', filename=post.filename)}} alt="post {{post.postid}}">
+                            <div class="blank"></div>
+                            <b>{{post.owner}}</b>
+                        </div>
+                    </a>
+                </div>
+                <div>
+                    <a href="/posts/{{post.postid}}/">{{post.timestamp}}</a>
+                </div>
+            </div>
+            <img src={{post.filename}} alt="post {{post.postid}} image">
+            <div class="content">
+                {% if post.likes == 1 %}
+                <p>{{post.likes}} like</p>
+                {% else %}
+                <p>{{post.likes}} likes</p>
+                {% endif %}
+                {% for comment in comments %}
+                    {% if comment.postid == post.postid %}
+                        <p><a href="/users/{{comment.owner}}/"><b>{{comment.owner}}</b></a> {{comment.text}}</p>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </body>
 </html>
