@@ -15,25 +15,37 @@ def show_index():
     # Connect to database
     connection = insta485.model.get_db()
 
-    # Query database
+    # Hard Coded logname
     logname = "awdeorio"
-    post = connection.execute(
+
+    # Query users
+    users = connection.execute(
+        "SELECT username, filename FROM users"
+    )
+    users = users.fetchall()
+    
+    # Query posts
+    posts = connection.execute(
         "SELECT * FROM posts"
     )
-    com = connection.execute(
+    posts = posts.fetchall()
+
+    # Query comments
+    comments = connection.execute(
         "SELECT owner, text, postid FROM comments"
     )
-    posts = post.fetchall()
-    comments = com.fetchall()
+    comments = comments.fetchall()
 
     # Add database info to context
     context = {
         "logname" : logname, 
         "posts" : posts,
-        "comments" : comments
+        "comments" : comments,
+        "users" : users
     }
     return flask.render_template("index.html", **context)
 
-@insta485.app.route('/')
+@insta485.app.route('/<path:filename>')
 def static_file(filename):
-    return send_from_directory(insta485.app.config['UPLOAD_FOLDER'], filename, as_attachment=False)
+    path_app_var = insta485.app.config['UPLOAD_FOLDER']
+    return send_from_directory(path_app_var, filename)

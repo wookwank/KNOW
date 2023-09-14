@@ -23,7 +23,11 @@
                 <div>
                     <a href="/users/{{post.owner}}/">
                         <div class="userimgname">
-                            <img src={{url_for('static_file', filename=post.filename)}} alt="post {{post.postid}}">
+                            {% for user in users %}
+                            {% if user.username ==  post.owner %}
+                            <img src={{user.filename}} alt="{{post.owner}} img">
+                            {% endif %}
+                            {% endfor %}
                             <div class="blank"></div>
                             <b>{{post.owner}}</b>
                         </div>
