@@ -8,15 +8,13 @@ URLs include:
 import arrow
 import flask
 import insta485
-from dateutil import tz
-from datetime import datetime
 
 # Helper functions library
 @insta485.app.context_processor
 def helpers():
     """Define dictionary of helpers."""
     def timestamp_handler(timestamp):
-        utc = arrow.get(timestamp, tzinfo='America/Michigan')
+        utc = arrow.get(timestamp, tzinfo='America/New_York')
         return utc.humanize()
     return dict(timestamp_handler=timestamp_handler)
 
@@ -70,3 +68,39 @@ def show_index():
         "likes" : likes
     }
     return flask.render_template("index.html", **context)
+
+@insta485.app.route('/users/<path:username>/')
+def show_user(username):
+    context = {
+
+    }
+    return flask.render_template("user.html", **context)
+
+
+@insta485.app.route('/users/<path:username>/following/')
+def show_following(username):
+    context = {
+
+    }
+    return flask.render_template("following.html", **context)
+
+@insta485.app.route('/users/<path:username>/followers/')
+def show_followers(username):
+    context = {
+
+    }
+    return flask.render_template("followers.html", **context)
+
+@insta485.app.route('/posts/<path:postid>/')
+def show_posts(postid):
+    context = {
+
+    }
+    return flask.render_template("post.html", **context)
+
+@insta485.app.route('/explore/')
+def show_explore():
+    context = {
+
+    }
+    return flask.render_template("explore.html", **context)
