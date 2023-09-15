@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>insta485</title>
+        <link rel="stylesheet" type="text/css" href="../../css/style.css">
+    </head>
+    <body>
+        <div class="topbar">
+            <div>
+                <a href="/">insta485</a>
+            </div>
+            <div class="topbar">
+                <a href="/explore/"><b>explore</b></a>
+                <div class="blank"></div>
+                <div> | </div>
+                <div class="blank"></div>
+                <a href="/users/{{logname}}/"><b>{{logname}}</b></a>
+            </div>
+        </div>
+
+        <div class="userinfo">
+            <h1>{{username}}</h1>
+            {% if logname != username and logname_follows_username %}
+            <p>following</p>
+            {% elif logname != username and not logname_follows_username %}
+            <p>not following</p>
+            {% endif %}
+            <p>
+                {% if total_posts == 1 %}
+                {{total_posts}} post
+                {% else %}
+                {{total_posts}} posts
+                {% endif %}
+                <a href="/users/{{username}}/followers/">
+                    <b>
+                        {% if followers == 1 %}
+                        {{followers}} follower
+                        {% else %}
+                        {{followers}} followers
+                        {% endif %}
+                    </b>
+                </a>
+                <a href="/users/{{username}}/following/">
+                    <b>{{following}} following</b>
+                </a>
+            </p>
+            <p>{{fullname}}</p>
+            <div class="horizontalImages">
+                {% for post in posts %}
+                <a href="/posts/{{post.postid}}/">
+                    <div>
+                        <img src={{post.img_url}} alt="post {{post.postid}}">
+                    </div>
+                </a>
+                <div class="blank"></div>
+                {% endfor %}
+            </div>
+        </div>
+    </body>
+</html>

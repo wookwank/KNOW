@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>insta485</title>
+        <link rel="stylesheet" type="text/css" href="../../css/style.css">
+    </head>
+    <body>
+        <div class="topbar">
+            <div>
+                <a href="/">insta485</a>
+            </div>
+            <div class="topbar">
+                <a href="/explore/"><b>explore</b></a>
+                <div class="blank"></div>
+                <div> | </div>
+                <div class="blank"></div>
+                <a href="/users/{{logname}}/"><b>{{logname}}</b></a>
+            </div>
+        </div>
+
+        <div class="post">
+            <div class="topbar">
+                <div>
+                    <a href="/users/{{owner}}/">
+                        <div class="userimgname">
+                            <img src={{owner_img_url}} alt="post owner {{owner}}">
+                            <div class="blank"></div>
+                            <b>{{owner}}</b>
+                        </div>
+                    </a>
+                </div>
+                <div>
+                    <a href="/posts/{{postid}}/">{{timestamp}}</a>
+                </div>
+            </div>
+            <img src={{img_url}} alt="post {{postid}} image">
+            <div class="content">
+                {% if likes == 1 %}
+                <p>{{likes}} like</p>
+                {% else %}
+                <p>{{likes}} likes</p>
+                {% endif %}
+                {% for comment in comments %}
+                <p><a href="/users/{{comment.owner}}/"><b>{{comment.owner}}</b></a> {{comment.text}}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </body>
+</html>

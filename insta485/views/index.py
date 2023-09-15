@@ -8,14 +8,16 @@ URLs include:
 import arrow
 import flask
 import insta485
-
+from dateutil import tz
+from datetime import datetime
 
 # Helper functions library
 @insta485.app.context_processor
 def helpers():
     """Define dictionary of helpers."""
     def timestamp_handler(timestamp):
-        return arrow.get(timestamp).humanize()
+        utc = arrow.get(timestamp, tzinfo='America/Michigan')
+        return utc.humanize()
     return dict(timestamp_handler=timestamp_handler)
 
 # Helper for routing images
@@ -40,7 +42,7 @@ def show_index():
         "SELECT username, filename FROM users"
     )
     users = users.fetchall()
-    
+
     # Query posts
     posts = connection.execute(
         "SELECT * FROM posts"

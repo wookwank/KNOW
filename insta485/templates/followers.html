@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>insta485</title>
+        <link rel="stylesheet" type="text/css" href="../../../css/style.css">
+    </head>
+    <body>
+        <div class="topbar">
+            <div>
+                <a href="/">insta485</a>
+            </div>
+            <div class="topbar">
+                <a href="/explore/"><b>explore</b></a>
+                <div class="blank"></div>
+                <div> | </div>
+                <div class="blank"></div>
+                <a href="/users/{{logname}}/"><b>{{logname}}</b></a>
+            </div>
+        </div>
+
+        <h1>Followers</h1>
+        {% for follower in followers %}
+        <div class="followbar">
+            <div>
+                <a href="/users/{{follower.username}}/">
+                    <div class="userimgname">
+                        <img src={{follower.user_img_url}} alt="follower {{follower.username}} img">
+                        <div class="blank"></div>
+                        <b>{{follower.username}}</b>
+                    </div>
+                </a>
+            </div>
+            <div>
+                {% if logname != follower.username and follower.logname_follows_username %}
+                following
+                {% elif logname != follower.username and not follower.logname_follows_username %}
+                not following
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </body>
+</html>

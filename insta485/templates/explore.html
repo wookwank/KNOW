@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>insta485</title>
+        <link rel="stylesheet" type="text/css" href="../css/style.css">
+    </head>
+    <body>
+        <div class="topbar">
+            <div>
+                <a href="/">insta485</a>
+            </div>
+            <div class="topbar">
+                <a href="/explore/"><b>explore</b></a>
+                <div class="blank"></div>
+                <div> | </div>
+                <div class="blank"></div>
+                <a href="/users/{{logname}}/"><b>{{logname}}</b></a>
+            </div>
+        </div>
+
+        <h1>Discover People</h1>
+        {% for nfollow in not_following %}
+        <div class="followbar">
+            <div>
+                <a href="/users/{{nfollow.username}}/">
+                    <div class="userimgname">
+                        <img src={{nfollow.user_img_url}} alt="suggestion {{nfollow.username}} img">
+                        <div class="blank"></div>
+                        <b>{{nfollow.username}}</b>
+                    </div>
+                </a>
+            </div>
+            <div></div>
+        </div>
+        {% endfor %}
+    </body>
+</html>
