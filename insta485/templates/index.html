@@ -30,75 +30,76 @@
                 {% endif %}
             {% endfor %}
             <!----------------------------------------------------->
-        <div class="post">
-            <div class="topbar">
-                <div>
-                    <a href="/users/{{post.owner}}/">
-                        <div class="userimgname">
-                            {% for user in users %}
-                            {% if user.username ==  post.owner %}
-                            <img src={{user.filename}} alt="{{post.owner}} img">
-                            {% endif %}
-                            {% endfor %}
-                            <div class="blank"></div>
-                            <b>{{post.owner}}</b>
-                        </div>
-                    </a>
+                    
+            <div class="post">
+                <div class="topbar">
+                    <div>
+                        <a href="/uploads/{{post.owner}}/">
+                            <div class="userimgname">
+                                {% for user in users %}
+                                {% if user.username ==  post.owner %}
+                                <img src="/uploads/{{user.filename}}" alt="{{post.owner}} img">
+                                {% endif %}
+                                {% endfor %}
+                                <div class="blank"></div>
+                                <b>{{post.owner}}</b>
+                            </div>
+                        </a>
+                    </div>
+                    <div>
+                        <a href="/posts/{{post.postid}}/">
+                            {{ timestamp_handler(post.created) }}
+                        </a>
+                    </div>
                 </div>
-                <div>
-                    <a href="/posts/{{post.postid}}/">
-                        {{ timestamp_handler(post.created) }}
-                    </a>
-                </div>
-            </div>
-            <img src={{post.filename}} alt="post {{post.postid}} image">
-            <div class="content">
-                {% if like_count.value == 1 %}
-                <p>{{like_count.value}} like</p>
-                {% else %}
-                <p>{{like_count.value}} likes</p>
-                {% endif %}
-                {% for comment in comments|reverse %}
-                    {% if comment.postid == post.postid %}
-                        <p>
-                            <a href="/users/{{comment.owner}}/">
-                                <b>{{comment.owner}}</b>
-                            </a>
-                            {{comment.text}}
-                        </p>
+                <img src="/uploads/{{post.filename}}" alt="post {{post.postid}} image">
+                <div class="content">
+                    {% if like_count.value == 1 %}
+                    <p>{{like_count.value}} like</p>
+                    {% else %}
+                    <p>{{like_count.value}} likes</p>
                     {% endif %}
-                {% endfor %}
-            </div>
-            <div class="content">
-                {% if liked.value == True %}
-                    <form action="/likes/?target=/"
+                    {% for comment in comments|reverse %}
+                        {% if comment.postid == post.postid %}
+                            <p>
+                                <a href="/users/{{comment.owner}}/">
+                                    <b>{{comment.owner}}</b>
+                                </a>
+                                {{comment.text}}
+                            </p>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="content">
+                    {% if liked.value == True %}
+                        <form action="/likes/?target=/"
+                            method="post"
+                            enctype="multipart/form-data">
+                            <input type="hidden" name="operation" value="like"/>
+                            <input type="hidden" name="postid" value="{{ post.postid }}"/>
+                            <input type="submit" name="like" value="like"/>
+                        </form>               
+                    {% else %}
+                        <form action="/likes/?target=/" 
+                            method="post"
+                            enctype="multipart/form-data">
+                            <input type="hidden" name="operation" value="unlike"/>
+                            <input type="hidden" name="postid" value="{{ post.postid }}"/>
+                            <input type="submit" name="unlike" value="unlike"/>
+                        </form>
+                    {% endif %}
+                </div>
+                <div class="content">
+                    <form action="/comments/?target=/"
                         method="post"
                         enctype="multipart/form-data">
-                        <input type="hidden" name="operation" value="like"/>
+                        <input type="hidden" name="operation" value="create"/>
                         <input type="hidden" name="postid" value="{{ post.postid }}"/>
-                        <input type="submit" name="like" value="like"/>
-                    </form>               
-                {% else %}
-                    <form action="/likes/?target=/" 
-                        method="post"
-                        enctype="multipart/form-data">
-                        <input type="hidden" name="operation" value="unlike"/>
-                        <input type="hidden" name="postid" value="{{ post.postid }}"/>
-                        <input type="submit" name="unlike" value="unlike"/>
+                        <input type="text" name="text" required/>
+                        <input type="submit" name="comment" value="comment"/>
                     </form>
-                {% endif %}
+                </div>
             </div>
-            <div class="content">
-                <form action="/comments/?target=/"
-                    method="post"
-                    enctype="multipart/form-data">
-                    <input type="hidden" name="operation" value="create"/>
-                    <input type="hidden" name="postid" value="{{ post.postid }}"/>
-                    <input type="text" name="text" required/>
-                    <input type="submit" name="comment" value="comment"/>
-                </form>
-            </div>
-        </div>
-        {% endfor %}
+        {% endfor %}        
     </body>
 </html>

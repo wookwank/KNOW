@@ -40,4 +40,4 @@ VALUES (1, 'awdeorio', 3, '#chickensofinstagram'),
 (4, 'awdeorio', 2, 'Sick #crossword'),
 (5, 'jflinn', 1, 'Walking the plank #chickensofinstagram'),
 (6, 'awdeorio', 1, 'This was after trying to teach them to do a #crossword'),
-(7, 'awdeorio', 4, 'Saw this on the diag yesterday!');
+(7, 'jag', 4, 'Saw this on the diag yesterday!');

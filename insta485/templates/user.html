@@ -18,8 +18,9 @@
             </div>
         </div>
 
+        {% for user in users %}
         <div class="userinfo">
-            <h1>{{username}}</h1>
+            <h1>{{user}}</h1>
             {% if logname != username and logname_follows_username %}
             <p>following</p>
             {% elif logname != username and not logname_follows_username %}

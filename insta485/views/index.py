@@ -19,10 +19,10 @@ def helpers():
     return dict(timestamp_handler=timestamp_handler)
 
 # Helper for routing images
-@insta485.app.route('/<path:filename>')
+@insta485.app.route('/uploads/<path:filename>')
 def static_file(filename):
     """Resolve image path."""
-    path_app_var = insta485.app.config['UPLOAD_FOLDER']
+    path_app_var = insta485.app.config['UPLOADS_FOLDER']
     return flask.send_from_directory(path_app_var, filename)
 
 # Routing function for /
@@ -43,7 +43,10 @@ def show_index():
 
     # Query posts
     posts = connection.execute(
-        "SELECT * FROM posts"
+        "SELECT * FROM posts "
+        "WHERE owner = ? OR "
+        "(owner IN (SELECT username1 "
+        "FROM following WHERE username2 = ?))", (logname,logname)
     )
     posts = posts.fetchall()
 
@@ -71,8 +74,30 @@ def show_index():
 
 @insta485.app.route('/users/<path:username>/')
 def show_user(username):
-    context = {
+    """Display /users/<path:username> route."""
+    # Connect to database
+    connection = insta485.model.get_db()
 
+    # Hard Coded logname
+    logname = "awdeorio"
+
+    # Query users
+    users = connection.execute(
+        "SELECT username, fullname FROM users"
+    )
+    users = users.fetchall()
+
+    # Query posts
+    posts = connection.execute(
+        "SELECT postid, filename, owner FROM posts "
+    )
+    posts = posts.fetchall()
+
+
+    context = {
+        "logname" : logname,
+        "users" : users
+        "posts" : posts
     }
     return flask.render_template("user.html", **context)
 
