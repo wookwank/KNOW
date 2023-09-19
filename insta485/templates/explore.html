@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <title>insta485</title>
-        <link rel="stylesheet" type="text/css" href="../css/style.css">
+        <link rel="stylesheet" type="text/css" href="../static/css/style.css">
     </head>
     <body>
         <div class="topbar">
@@ -19,19 +19,30 @@
         </div>
 
         <h1>Discover People</h1>
-        {% for nfollow in not_following %}
-        <div class="followbar">
-            <div>
-                <a href="/users/{{nfollow.username}}/">
-                    <div class="userimgname">
-                        <img src={{nfollow.user_img_url}} alt="suggestion {{nfollow.username}} img">
-                        <div class="blank"></div>
-                        <b>{{nfollow.username}}</b>
+        {% for user in users %}
+            {% if user.username != logname and user.username not in following %}
+                <div class="followbar">
+                    <div>
+                        <a href="/users/{{user.username}}/">
+                            <div class="userimgname">
+                                <img src="/uploads/{{ user.filename }}"
+                                alt="suggestion {{user.username}} img">
+                                <div class="blank"></div>
+                                <b>{{ user.username }}</b>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <div></div>
-        </div>
+                    <div>
+                        <form action="/following/?target={{url_for('show_explore')}}"
+                        method="post"
+                        enctype="multipart/form-data">
+                            <input type="submit" name="follow" value="follow"/>
+                            <input type="hidden" name="username" value="{{ user.username }}"/>
+                            <input type="hidden" name="operation" value="follow"/>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
         {% endfor %}
     </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <title>insta485</title>
-        <link rel="stylesheet" type="text/css" href="../../css/style.css">
+        <link rel="stylesheet" type="text/css" href="../../static/css/style.css">
     </head>
     <body>
         <div class="topbar">
@@ -18,44 +18,126 @@
             </div>
         </div>
 
-        {% for user in users %}
+        <!--Loop through every user in DB-->
         <div class="userinfo">
-            <h1>{{user}}</h1>
-            {% if logname != username and logname_follows_username %}
-            <p>following</p>
-            {% elif logname != username and not logname_follows_username %}
-            <p>not following</p>
-            {% endif %}
-            <p>
-                {% if total_posts == 1 %}
-                {{total_posts}} post
+            <!--print username-->
+            <h1>{{username}}</h1>
+            
+            <!--Edit profilem logout button if logname == username-->
+            {% if logname == username %}
+            <a href="/accounts/edit/"><b>Edit profile</b></a>
+            <form action="/accounts/logout/"
+            method="post"
+            enctype="multipart/form-data">
+                <input type="submit" name="logout" value="Logout"/>
+            </form>
+
+            <!-- if logname != username set following or not and button -->
+            {% else %}
+                {% set follow_or_not = namespace(value=False) %}
+                {% for following in followers %}
+                    {% if following.username1 == logname and
+                        following.username2 == username %}
+                        {% set follow_or_not.value = True %}
+                    {% endif %}
+                {% endfor %}
+                {% if follow_or_not %}
+                    following
+                    <form action="following?target={{url_for('show_user', username=username)}}"
+                    method="post"
+                    enctype="multipart/form-data">
+                        <input type="submit" name="unfollow" value="unfollow"/>
+                        <input type="hidden" name="username" value="{{ username }}"/>
+                        <input type="hidden" name="operation" value="unfollow"/>
+                    </form>
                 {% else %}
-                {{total_posts}} posts
+                    not following
+                    <form action="following?target=/users/{{username}}"
+                    method="post"
+                    enctype="multipart/form-data">
+                        <input type="submit" name="follow" value="follow"/>
+                        <input type="hidden" name="username" value="{{ username }}"/>
+                        <input type="hidden" name="operation" value="follow"/>
+                    </form>
                 {% endif %}
+            {% endif %}
+
+            <!--Count number of posts from username-->
+            {% set post_count = namespace(value=0) %}
+            {% for post in posts %}
+                {% if username == post.owner %}
+                    {% set post_count.value = post_count.value + 1 %}
+                {% endif %}
+            {% endfor %}
+            <!--Count number of following/follower-->
+            {% set follower_count = namespace(value=0) %}
+            {% set following_count = namespace(value=0) %}
+            {% for following in followers %}
+                {% if username == following.username1 %}
+                    {% set following_count.value = following_count.value + 1 %}
+                {% endif %}
+                {% if username == following.username2 %}
+                    {% set follower_count.value = follower_count.value + 1 %}
+                {% endif %}
+            {% endfor %}
+            <!--Print num_post, num_follower, num_following-->
+            <p>
+                <!--Print Post-->
+                {% if post_count == 1 %}
+                {{post_count.value}} post
+                {% else %}
+                {{post_count.value}} posts
+                {% endif %}
+                <!--Print Followers-->
                 <a href="/users/{{username}}/followers/">
                     <b>
-                        {% if followers == 1 %}
-                        {{followers}} follower
+                        {% if follower_count == 1 %}
+                        {{follower_count.value}} follower
                         {% else %}
-                        {{followers}} followers
+                        {{follower_count.value}} followers
                         {% endif %}
                     </b>
                 </a>
+                <!--Print Following-->
                 <a href="/users/{{username}}/following/">
-                    <b>{{following}} following</b>
+                    <b>{{following_count.value}} following</b>
                 </a>
             </p>
-            <p>{{fullname}}</p>
+            <!--Print Fullname-->
+            {% for user in users %}
+                {% if user.username == username %}
+                    <p>{{user.fullname}}</p>
+                {% endif %}
+            {% endfor %}
+
+            <!--if logname == username-->
+            {% if logname == username %}
+                <form action="post?target={{url_for('show_user', username=username)}}"
+                method="post"enctype="multipart/form-data">
+                    <input type="file" name="file" accept="image/*" required/>
+                    <input type="submit" name="create_post" value="upload new post"/>
+                    <input type="hidden" name="operation" value="create"/>
+                </form>
+            {% endif %}
+            
+            <!--Display Posts-->
+            {% if post_count.value == 0 %}
+                <p>No posts yet.</p>
+            {% else %}
             <div class="horizontalImages">
                 {% for post in posts %}
-                <a href="/posts/{{post.postid}}/">
-                    <div>
-                        <img src={{post.img_url}} alt="post {{post.postid}}">
-                    </div>
-                </a>
-                <div class="blank"></div>
+                    {% if username == post.owner %}
+                        <a href="/posts/{{post.postid}}/">
+                        <div>
+                            <img src="/uploads/{{post.filename}}" alt="post {{post.postid}}">
+                        </div>
+                    </a>
+                    <div class="blank"></div>
+                    {% endif %}
                 {% endfor %}
             </div>
+            {% endif %}
+            
         </div>
     </body>
 </html>

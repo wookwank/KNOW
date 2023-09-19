@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <title>insta485</title>
-        <link rel="stylesheet" type="text/css" href="../../../css/style.css">
+        <link rel="stylesheet" type="text/css" href="../../../static/css/style.css">
     </head>
     <body>
         <div class="topbar">
@@ -19,25 +19,56 @@
         </div>
 
         <h1>Following</h1>
-        {% for follow in following %}
-        <div class="followbar">
-            <div>
-                <a href="/users/{{follow.username}}/">
-                    <div class="userimgname">
-                        <img src={{follow.user_img_url}} alt="following {{follow.username}} img">
-                        <div class="blank"></div>
-                        <b>{{follow.username}}</b>
+        {% for following in followers %}   
+            {% if following.username1 == username %}
+                <div class="followbar">
+                    <div>
+                        <a href="/users/{{following.username2}}/">
+                            <div class="userimgname">
+                                {% for user in users %}
+                                {% if user.username ==  following.username2 %}
+                                <img src="/uploads/{{user.filename}}" alt="{{following.username1}} img">
+                                {% endif %}
+                                {% endfor %}
+                                <div class="blank"></div>
+                                <b>{{following.username2}}</b>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <div>
-                {% if logname != follow.username and follow.logname_follows_username %}
-                following
-                {% elif logname != follow.username and not follow.logname_follows_username %}
-                not following
-                {% endif %}
-            </div>
-        </div>
+
+                    <div>
+                    <!-- I am the following himself -->
+                    {% if following.username2 == logname %}
+                    <!-- For loop for searching following or not -->
+                    {% else %}
+                        {% set is_follow = namespace(value=False) %}
+                        {% for inner_following in followers %}
+                            {% if inner_following.username2 == logname and
+                                following.username2 == inner_following.username1 %}
+                                {% set is_follow.value = True %}
+                            {% endif %}
+                        {% endfor %}
+                        <!-- The logname is following username1 -->
+                        {% if is_follow.value %}
+                            following
+                            <form action="/following/?target={{url_for('show_following', username=username)}}" method="post" enctype="multipart/form-data">
+                                <input type="submit" name="unfollow" value="unfollow"/>
+                                <input type="hidden" name="username" value="{{ following.username1 }}"/>
+                                <input type="hidden" name="operation" value="unfollow"/>
+                            </form>
+                        <!-- The logname is not following username1 -->
+                        {% else %}
+                            not following
+                            <form action="/following/?target={{url_for('show_following', username=username)}}" method="post" enctype="multipart/form-data">
+                                <input type="submit" name="follow" value="follow"/>
+                                <input type="hidden" name="username" value="{{ following.username1 }}"/>
+                                <input type="hidden" name="operation" value="follow"/>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                    </div>
+                </div>
+            {% endif %}
         {% endfor %}
     </body>
 </html>

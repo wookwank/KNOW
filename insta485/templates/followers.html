@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <title>insta485</title>
-        <link rel="stylesheet" type="text/css" href="../../../css/style.css">
+        <link rel="stylesheet" type="text/css" href="../../../static/css/style.css">
     </head>
     <body>
         <div class="topbar">
@@ -19,25 +19,54 @@
         </div>
 
         <h1>Followers</h1>
-        {% for follower in followers %}
-        <div class="followbar">
-            <div>
-                <a href="/users/{{follower.username}}/">
-                    <div class="userimgname">
-                        <img src={{follower.user_img_url}} alt="follower {{follower.username}} img">
-                        <div class="blank"></div>
-                        <b>{{follower.username}}</b>
+        {% for follower in followers %}   
+            {% if follower.username2 == username %}
+                <div class="followbar">
+                    <div>
+                        <a href="/users/{{follower.username1}}/">
+                            <div class="userimgname">
+                                {% for user in users %}
+                                {% if user.username ==  follower.username1 %}
+                                <img src="/uploads/{{user.filename}}" alt="{{follower.username1}} img">
+                                {% endif %}
+                                {% endfor %}
+                                <div class="blank"></div>
+                                <b>{{follower.username1}}</b>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <div>
-                {% if logname != follower.username and follower.logname_follows_username %}
-                following
-                {% elif logname != follower.username and not follower.logname_follows_username %}
-                not following
-                {% endif %}
-            </div>
-        </div>
+
+                    <!-- I am the follower himself -->
+                    {% if follower.username1 == logname %}
+                    <!-- For loop for searching follower or not -->
+                    {% else %}
+                        {% set is_follow = namespace(value=False) %}
+                        {% for inner_follower in followers %}
+                            {% if inner_follower.username1 == logname and
+                                follower.username1 == inner_follower.username2 %}
+                                {% set is_follow.value = True %}
+                            {% endif %}
+                        {% endfor %}
+                        <!-- The logname is following username1 -->
+                        {% if is_follow.value %}
+                            following
+                            <form action="/followers/?target={{url_for('show_followers', username=username)}}" method="post" enctype="multipart/form-data">
+                                <input type="submit" name="unfollow" value="unfollow"/>
+                                <input type="hidden" name="username" value="{{ follower.username1 }}"/>
+                                <input type="hidden" name="operation" value="unfollow"/>
+                            </form>
+                        <!-- The logname is not following username1 -->
+                        {% else %}
+                            not following
+                            <form action="/followers/?target={{url_for('show_followers', username=username)}}" method="post" enctype="multipart/form-data">
+                                <input type="submit" name="follow" value="follow"/>
+                                <input type="hidden" name="username" value="{{ follower.username1 }}"/>
+                                <input type="hidden" name="operation" value="follow"/>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
         {% endfor %}
     </body>
 </html>

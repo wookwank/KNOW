@@ -58,7 +58,7 @@ def show_index():
 
     # Query likes
     likes = connection.execute(
-        "SELECT postid FROM likes"
+        "SELECT postid, owner FROM likes"
     )
     likes = likes.fetchall()
 
@@ -93,39 +93,146 @@ def show_user(username):
     )
     posts = posts.fetchall()
 
+    # Query following
+    following = connection.execute(
+        "SELECT username1, username2 FROM following "
+    )
+    followers = following.fetchall()
 
     context = {
         "logname" : logname,
-        "users" : users
-        "posts" : posts
+        "username" : username, 
+        "users" : users,
+        "posts" : posts,
+        "followers" : followers
     }
     return flask.render_template("user.html", **context)
 
 
-@insta485.app.route('/users/<path:username>/following/')
-def show_following(username):
-    context = {
-
-    }
-    return flask.render_template("following.html", **context)
-
-@insta485.app.route('/users/<path:username>/followers/')
+@insta485.app.route('/users/<path:username>/followers/', methods=['GET', 'POST'])
 def show_followers(username):
-    context = {
+     # Connect to database
+    connection = insta485.model.get_db()
 
+    # Hard Coded logname
+    logname = "awdeorio"
+
+    # Query following
+    followers = connection.execute(
+            "SELECT username1, username2 FROM following"
+    )
+    followers = followers.fetchall()
+
+    # Query users
+    users = connection.execute(
+        "SELECT username, filename FROM users"
+    )
+    users = users.fetchall()
+
+    context = {
+        "username" : username,
+        "logname" : logname,
+        "followers" : followers,
+        "users" : users
     }
     return flask.render_template("followers.html", **context)
 
+@insta485.app.route('/users/<path:username>/following/')
+def show_following(username):
+    # Connect to database
+    connection = insta485.model.get_db()
+
+    # Hard Coded logname
+    logname = "awdeorio"
+
+    # Query following
+    followers = connection.execute(
+            "SELECT username1, username2 FROM following"
+    )
+    followers = followers.fetchall()
+
+    # Query users
+    users = connection.execute(
+        "SELECT username, filename FROM users"
+    )
+    users = users.fetchall()
+
+    context = {
+        "username" : username,
+        "logname" : logname,
+        "followers" : followers,
+        "users" : users
+    }
+    return flask.render_template("following.html", **context)
+    
+
 @insta485.app.route('/posts/<path:postid>/')
 def show_posts(postid):
-    context = {
+    """Display / route."""
+    # Connect to database
+    connection = insta485.model.get_db()
 
+    # Hard Coded logname
+    logname = "awdeorio"
+
+    # Query users
+    users = connection.execute(
+        "SELECT username, filename FROM users"
+    )
+    users = users.fetchall()
+
+    # Query posts
+    posts = connection.execute(
+        "SELECT * FROM posts "
+    )
+    posts = posts.fetchall()
+
+    # Query comments
+    comments = connection.execute(
+        "SELECT owner, text, postid, commentid FROM comments"
+    )
+    comments = comments.fetchall()
+
+    # Query likes
+    likes = connection.execute(
+        "SELECT postid, owner FROM likes"
+    )
+    likes = likes.fetchall()
+
+    # Add database info to context
+    context = {
+        "postid" : int(postid),
+        "logname" : logname, 
+        "posts" : posts,
+        "comments" : comments,
+        "users" : users,
+        "likes" : likes
     }
     return flask.render_template("post.html", **context)
 
 @insta485.app.route('/explore/')
 def show_explore():
-    context = {
+    # Connect to database
+    connection = insta485.model.get_db()
 
+    # Hard Coded logname
+    logname = "awdeorio"
+
+    users = connection.execute(
+        "SELECT username, filename FROM users"
+    )
+    users = users.fetchall()
+
+    # Query following
+    following = connection.execute(
+        "SELECT username2 FROM following WHERE username1 = ?", (logname,)
+    )
+    following = following.fetchall()
+    following = [follow['username2'] for follow in following]
+
+    context = {
+        "logname" : logname,
+        "users" : users,
+        "following" : following
     }
     return flask.render_template("explore.html", **context)
