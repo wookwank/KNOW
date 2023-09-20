@@ -7,6 +7,11 @@ URLs include:
 
 import arrow
 import flask
+import hashlib
+import os
+import pathlib
+import uuid
+
 import insta485
 
 # Helper functions library
@@ -30,9 +35,9 @@ def static_file(filename):
 @insta485.app.route('/')
 def show_index():
     """Display / route."""
+    # not logged in
+    # redirect to accounts/login
     if 'logname' not in flask.session:
-        # not logged in
-        # redirect to accounts/login
         return flask.redirect(flask.url_for('show_login'))
     
     # logged in
@@ -188,7 +193,7 @@ def show_following(username):
     return flask.render_template("following.html", **context)
     
 
-@insta485.app.route('/posts/<path:postid>/')
+@insta485.app.route('/posts/<int:postid>/')
 def show_posts(postid):
     """Display / route."""
     # Connect to database
@@ -223,7 +228,7 @@ def show_posts(postid):
 
     # Add database info to context
     context = {
-        "postid" : int(postid),
+        "postid" : postid,
         "logname" : logname, 
         "posts" : posts,
         "comments" : comments,
@@ -325,9 +330,14 @@ def post_account():
     connection = insta485.model.get_db()
 
     users = connection.execute(
-        "SELECT username, password FROM users"
+        "SELECT username, password, filename FROM users"
     )
     users = users.fetchall()
+
+    posts = connection.execute(
+        "SELECT filename, owner FROM posts"
+    )
+    posts = posts.fetchall()
 
     operation = flask.request.form.get('operation')
     target_url = flask.request.args.get('target')
@@ -368,10 +378,10 @@ def post_account():
 
             # If any are empty, abort(400)
             if (not username
-            or not password
-            or not fullname
-            or not email
-            or not file.filename):
+                or not password
+                or not fullname
+                or not email
+                or not file.filename):
                 flask.abort(400)
 
             
@@ -380,8 +390,6 @@ def post_account():
                 flask.abort(409)
 
             # password hashing
-            import uuid
-            import hashlib
             algorithm = 'sha512'
             salt = uuid.uuid4().hex
             hash_obj = hashlib.new(algorithm)
@@ -401,7 +409,20 @@ def post_account():
             )
 
             ###########################################
-            # TODO: upload file image into /var/uploads
+            ########### Code updated by DK ############
+            ###########################################
+
+            # compute base name
+            stem = uuid.uuid4().hex
+            suffix = pathlib.Path(file.filename).suffix.lower()
+            uuid_basename = f"{stem}{suffix}"
+
+            # save to disk
+            path = insta485.app.config["UPLOADS_FOLDER"] / uuid_basename
+            file.save(path)
+
+            ###########################################
+            ########### Code updated by DK ############
             ###########################################
 
             # log the user in and redirect to target url
@@ -409,7 +430,46 @@ def post_account():
             return flask.redirect(target_url)
         
         case 'delete':
-            pass
+            ###########################################
+            ########### Code updated by DK ############
+            ###########################################
+
+            # if user is not logged in abort
+            if 'logname' not in flask.session:
+                flask.abort(403)
+            logname = flask.session['logname']
+
+            # delete post files created by user
+            for post in posts:
+                if post['owner'] == logname:
+                    filename = post['filename']
+                    path = insta485.app.config["UPLOADS_FOLDER"] / filename
+                    path.unlink()
+
+            # delete user icon file
+            for user in users:
+                if user['username'] == logname:
+                    filename = user['filename']
+                    path = insta485.app.config["UPLOADS_FOLDER"] / filename
+                    path.unlink()
+
+            # delete all related entries in all tables
+            cursor = connection.cursor()
+            cursor.execute(
+                "DELETE FROM users WHERE username = ?",
+                (logname,)
+            )
+
+            # redirect to URL
+            flask.session.clear()
+            return flask.redirect(target_url)
+        
+            # TODO: aborting 403 when it should not
+
+            ###########################################
+            ########### Code updated by DK ############
+            ###########################################
+
         case 'edit_account':
             pass
         case 'update_password':
