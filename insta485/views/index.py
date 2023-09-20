@@ -430,10 +430,6 @@ def post_account():
             return flask.redirect(target_url)
         
         case 'delete':
-            ###########################################
-            ########### Code updated by DK ############
-            ###########################################
-
             # if user is not logged in abort
             if 'logname' not in flask.session:
                 flask.abort(403)
@@ -452,6 +448,7 @@ def post_account():
                     filename = user['filename']
                     path = insta485.app.config["UPLOADS_FOLDER"] / filename
                     path.unlink()
+                    
 
             # delete all related entries in all tables
             cursor = connection.cursor()
@@ -464,12 +461,6 @@ def post_account():
             flask.session.clear()
             return flask.redirect(target_url)
         
-            # TODO: aborting 403 when it should not
-
-            ###########################################
-            ########### Code updated by DK ############
-            ###########################################
-
         case 'edit_account':
             pass
         case 'update_password':
