@@ -400,6 +400,10 @@ def post_account():
                 (username, password_db_string, fullname, email, file.filename)
             )
 
+            ###########################################
+            # TODO: upload file image into /var/uploads
+            ###########################################
+
             # log the user in and redirect to target url
             flask.session['logname'] = username
             return flask.redirect(target_url)
