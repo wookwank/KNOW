@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>insta485</title>
+        <link rel="stylesheet" type="text/css" href="../../static/css/style.css">
+    </head>
+    <body>
+        <div class="topbar">
+            <div>
+                <a href="/">insta485</a>
+            </div>
+            <div class="topbar">
+                <a href="/explore/"><b>explore</b></a>
+                <div class="blank"></div>
+                <div> | </div>
+                <div class="blank"></div>
+                <a href="{{ url_for('show_user', username=logname) }}"><b>{{logname}}</b></a>
+            </div>
+        </div>
+        <p><b>{{ logname }}</b></p><br>
+        <!-- DO NOT CHANGE THIS -->
+        <form action="/accounts/?target={{ url_for('show_create') }}"
+        method="post"
+        enctype="multipart/form-data">
+        <input type="submit" name="delete" value="confirm delete account"/>
+        <input type="hidden" name="operation" value="delete"/>
+         </form>
+    </body>
+</html>

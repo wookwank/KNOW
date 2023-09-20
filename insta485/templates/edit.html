@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>insta485</title>
+        <link rel="stylesheet" type="text/css" href="../../static/css/style.css">
+    </head>
+    <body>
+        <div class="topbar">
+            <div>
+                <a href="/">insta485</a>
+            </div>
+            <div class="topbar">
+                <a href="/explore/"><b>explore</b></a>
+                <div class="blank"></div>
+                <div> | </div>
+                <div class="blank"></div>
+                <a href="{{ url_for('show_user', username=logname) }}"><b>{{logname}}</b></a>
+            </div>
+        </div>
+
+        <!-- comeback and implement 대가리 -->
+
+        <form action="/accounts/?target={{ url_for('show_edit') }}"
+        method="post"
+        enctype="multipart/form-data">
+            <input type="file" name="file" accept="image/*"/>
+            <p>Name</p><input type="text" name="fullname" value="{{ fullname }}" required/>
+            <p>Email</p><input type="text" name="email" value="{{ email }}" required/>
+            <input type="submit" name="update" value="submit"/>
+            <input type="hidden" name="operation" value="edit_account"/>
+          </form>
+          <a href="{{ url_for('show_password') }}">
+            <b>Change password</b>
+          </a>
+          <a href="{{ url_for('show_delete') }}">
+            <b>Delete account</b>
+          </a> 

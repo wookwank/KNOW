@@ -14,7 +14,7 @@
                 <div class="blank"></div>
                 <div> | </div>
                 <div class="blank"></div>
-                <a href="/users/{{logname}}/"><b>{{logname}}</b></a>
+                <a href="{{ url_for('show_user', username=logname) }}"><b>{{logname}}</b></a>
             </div>
         </div>
 
@@ -23,7 +23,7 @@
             {% if follower.username2 == username %}
                 <div class="followbar">
                     <div>
-                        <a href="/users/{{follower.username1}}/">
+                        <a href="{{ url_for('show_user', username=follower.username1) }}">
                             <div class="userimgname">
                                 {% for user in users %}
                                 {% if user.username ==  follower.username1 %}

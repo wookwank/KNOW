@@ -124,7 +124,7 @@
                 <br>
                 <!-- Delete this post -->
                 {% if logname == post_ownername.value %}
-                <form action="/posts/?target={{url_for('show_posts', postid=postid)}}"
+                <form action="/posts/?target={{ url_for('show_user', username=logname) }}"
                     method="post"
                     enctype="multipart/form-data">
                     <input type="hidden" name="operation" value="delete"/>

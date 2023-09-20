@@ -14,7 +14,7 @@
                 <div class="blank"></div>
                 <div> | </div>
                 <div class="blank"></div>
-                <a href="/users/{{logname}}/"><b>{{logname}}</b></a>
+                <a href="{{ url_for('show_user', username=logname) }}"><b>{{logname}}</b></a>
             </div>
         </div>
         {% for post in posts|reverse %}
@@ -34,7 +34,7 @@
             <div class="post">
                 <div class="topbar">
                     <div>
-                        <a href="/users/{{post.owner}}/">
+                        <a href="{{ url_for('show_user', username=post.owner) }}">
                             <div class="userimgname">
                                 {% for user in users %}
                                 {% if user.username ==  post.owner %}
@@ -47,7 +47,7 @@
                         </a>
                     </div>
                     <div>
-                        <a href="/posts/{{post.postid}}/">
+                        <a href="{{ url_for('show_posts', postid=post.postid) }}">
                             {{ timestamp_handler(post.created) }}
                         </a>
                     </div>
@@ -62,7 +62,7 @@
                     {% for comment in comments|reverse %}
                         {% if comment.postid == post.postid %}
                             <p>
-                                <a href="/users/{{comment.owner}}/">
+                                <a href="{{ url_for('show_user', username=comment.owner) }}">
                                     <b>{{comment.owner}}</b>
                                 </a>
                                 {{comment.text}}
@@ -72,7 +72,7 @@
                 </div>
                 <div class="content">
                     {% if liked.value == True %}
-                        <form action="/likes/?target=/" 
+                        <form action="/likes/?target={{url_for('show_index')}}" 
                             method="post"
                             enctype="multipart/form-data">
                             <input type="hidden" name="operation" value="unlike"/>
@@ -80,7 +80,7 @@
                             <input type="submit" name="unlike" value="unlike"/>
                         </form>
                     {% else %}
-                        <form action="/likes/?target=/"
+                        <form action="/likes/?target={{url_for('show_index')}}"
                             method="post"
                             enctype="multipart/form-data">
                             <input type="hidden" name="operation" value="like"/>
@@ -90,7 +90,7 @@
                     {% endif %}
                 </div>
                 <div class="content">
-                    <form action="/comments/?target=/"
+                    <form action="/comments/?target={{url_for('show_index')}}"
                         method="post"
                         enctype="multipart/form-data">
                         <input type="hidden" name="operation" value="create"/>

@@ -25,15 +25,25 @@ def static_file(filename):
     path_app_var = insta485.app.config['UPLOADS_FOLDER']
     return flask.send_from_directory(path_app_var, filename)
 
+
 # Routing function for /
 @insta485.app.route('/')
 def show_index():
     """Display / route."""
+    if 'logname' not in flask.session:
+        # not logged in
+        # redirect to accounts/login
+        return flask.redirect(flask.url_for('show_login'))
+    
+    # logged in
+    # set logname to logname in cookies (flask.session)
+    logname = flask.session['logname']
+    
     # Connect to database
     connection = insta485.model.get_db()
 
     # Hard Coded logname
-    logname = "awdeorio"
+    # logname = "awdeorio"
 
     # Query users
     users = connection.execute(
@@ -87,6 +97,10 @@ def show_user(username):
     )
     users = users.fetchall()
 
+    # Abort if username is not in db
+    if username not in [user['username'] for user in users]:
+        flask.abort(404)
+
     # Query posts
     posts = connection.execute(
         "SELECT postid, filename, owner FROM posts "
@@ -109,7 +123,7 @@ def show_user(username):
     return flask.render_template("user.html", **context)
 
 
-@insta485.app.route('/users/<path:username>/followers/', methods=['GET', 'POST'])
+@insta485.app.route('/users/<path:username>/followers/')
 def show_followers(username):
      # Connect to database
     connection = insta485.model.get_db()
@@ -128,6 +142,10 @@ def show_followers(username):
         "SELECT username, filename FROM users"
     )
     users = users.fetchall()
+
+    # Abort if username is not in db
+    if username not in [user['username'] for user in users]:
+        flask.abort(404)
 
     context = {
         "username" : username,
@@ -156,6 +174,10 @@ def show_following(username):
         "SELECT username, filename FROM users"
     )
     users = users.fetchall()
+
+    # Abort if username is not in db
+    if username not in [user['username'] for user in users]:
+        flask.abort(404)
 
     context = {
         "username" : username,
@@ -236,3 +258,158 @@ def show_explore():
         "following" : following
     }
     return flask.render_template("explore.html", **context)
+
+
+@insta485.app.route('/accounts/login/')
+def show_login():
+    if 'logname' in flask.session:
+        return flask.redirect(flask.url_for('show_index'))
+    return flask.render_template("login.html")
+
+
+@insta485.app.route('/accounts/logout/', methods=['POST'])
+def post_logout():
+    flask.session.clear()
+    return flask.redirect(flask.url_for('show_login'))
+
+
+@insta485.app.route('/accounts/create/')
+def show_create():
+    if 'logname' in flask.session:
+        return flask.redirect(flask.url_for('show_edit'))
+    return flask.render_template("create.html")
+
+
+@insta485.app.route('/accounts/delete/')
+def show_delete():
+    logname = flask.session['logname']
+
+    context = {
+        "logname" : logname
+    }
+
+    return flask.render_template("delete.html", **context)
+
+
+@insta485.app.route('/accounts/edit/')
+def show_edit():
+    logname = flask.session['logname']
+    # check how to get email 
+    # email = flask.session['email']
+    context = {
+        "logname" : logname,
+        # "email" : email
+    }
+    return flask.render_template("edit.html", **context)
+
+
+@insta485.app.route('/accounts/password/')
+def show_password():
+    logname = flask.session['logname']
+
+    context = {
+        "logname" : logname
+    }
+
+    return flask.render_template("password.html", **context)
+
+@insta485.app.route('/accounts/auth/')
+def show_auth():
+    if 'logname' in flask.session:
+        return flask.make_response('', 200)
+    return flask.abort(403)
+
+@insta485.app.route('/accounts/', methods=['POST'])
+def post_account():
+     # Connect to database
+    connection = insta485.model.get_db()
+
+    users = connection.execute(
+        "SELECT username, password FROM users"
+    )
+    users = users.fetchall()
+
+    operation = flask.request.form.get('operation')
+    target_url = flask.request.args.get('target')
+    if not target_url:
+        return flask.redirect(flask.url_for('show_index'))
+
+    match operation:
+        case 'login':
+            username = flask.request.form.get('username')
+            password = flask.request.form.get('password')
+            
+            # username or password is empty
+            if not username or not password:
+                flask.abort(400)
+
+            # case for username and password authentication fail
+            # user does not exist in db
+            if username not in [user['username'] for user in users]:
+                flask.abort(403)
+            # user exists
+            else:
+                for user in users:
+                    if user['username'] == username:
+                        if user['password'] != password:
+                            flask.abort(403)
+            
+            # set session
+            flask.session['logname'] = username
+            return flask.redirect(target_url)
+                
+        case 'create':
+            # Use from POST request 
+            username = flask.request.form.get('username')
+            password = flask.request.form.get('password')
+            fullname = flask.request.form.get('fullname')
+            email = flask.request.form.get('email')
+            file = flask.request.files['file']
+
+            # If any are empty, abort(400)
+            if (not username
+            or not password
+            or not fullname
+            or not email
+            or not file.filename):
+                flask.abort(400)
+
+            
+            # if user tries to make username that exists in db
+            if username in [user['username'] for user in users]:
+                flask.abort(409)
+
+            # password hashing
+            import uuid
+            import hashlib
+            algorithm = 'sha512'
+            salt = uuid.uuid4().hex
+            hash_obj = hashlib.new(algorithm)
+            password_salted = salt + password
+            hash_obj.update(password_salted.encode('utf-8'))
+            password_hash = hash_obj.hexdigest()
+            password_db_string = "$".join([algorithm, salt, password_hash])
+            print(password_db_string)
+
+            # insert info into db
+            cursor = connection.cursor()
+            cursor.execute(
+                "INSERT INTO users "
+                "(username, password, fullname, email, filename)"
+                "VALUES (?, ?, ?, ?, ?)",
+                (username, password_db_string, fullname, email, file.filename)
+            )
+
+            # log the user in and redirect to target url
+            flask.session['logname'] = username
+            return flask.redirect(target_url)
+        
+        case 'delete':
+            pass
+        case 'edit_account':
+            pass
+        case 'update_password':
+            pass
+    
+
+
