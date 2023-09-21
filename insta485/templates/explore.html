@@ -7,14 +7,14 @@
     <body>
         <div class="topbar">
             <div>
-                <a href="/">insta485</a>
+                <a href="{{ url_for('show_index') }}">insta485</a>
             </div>
             <div class="topbar">
-                <a href="/explore/"><b>explore</b></a>
+                <a href="{{ url_for('show_explore') }}"><b>explore</b></a>
                 <div class="blank"></div>
                 <div> | </div>
                 <div class="blank"></div>
-                <a href="/users/{{logname}}/"><b>{{logname}}</b></a>
+                <a href="{{ url_for('show_user', username=logname) }}"><b>{{logname}}</b></a>
             </div>
         </div>
 
@@ -23,7 +23,7 @@
             {% if user.username != logname and user.username not in following %}
                 <div class="followbar">
                     <div>
-                        <a href="/users/{{user.username}}/">
+                        <a href="{{ url_for('show_user', username=user.username) }}">
                             <div class="userimgname">
                                 <img src="/uploads/{{ user.filename }}"
                                 alt="suggestion {{user.username}} img">

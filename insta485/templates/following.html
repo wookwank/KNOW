@@ -7,10 +7,10 @@
     <body>
         <div class="topbar">
             <div>
-                <a href="/">insta485</a>
+                <a href="{{ url_for('show_index') }}">insta485</a>
             </div>
             <div class="topbar">
-                <a href="/explore/"><b>explore</b></a>
+                <a href="{{ url_for('show_explore') }}"><b>explore</b></a>
                 <div class="blank"></div>
                 <div> | </div>
                 <div class="blank"></div>
@@ -27,7 +27,7 @@
                             <div class="userimgname">
                                 {% for user in users %}
                                 {% if user.username ==  following.username2 %}
-                                <img src="/uploads/{{user.filename}}" alt="{{following.username1}} img">
+                                <img src="/uploads/{{user.filename}}" alt="{{following.username2}} img">
                                 {% endif %}
                                 {% endfor %}
                                 <div class="blank"></div>
@@ -48,20 +48,20 @@
                                 {% set is_follow.value = True %}
                             {% endif %}
                         {% endfor %}
-                        <!-- The logname is following username1 -->
+                        <!-- The logname is following username2 -->
                         {% if is_follow.value %}
                             following
                             <form action="/following/?target={{url_for('show_following', username=username)}}" method="post" enctype="multipart/form-data">
                                 <input type="submit" name="unfollow" value="unfollow"/>
-                                <input type="hidden" name="username" value="{{ following.username1 }}"/>
+                                <input type="hidden" name="username" value="{{ following.username2 }}"/>
                                 <input type="hidden" name="operation" value="unfollow"/>
                             </form>
-                        <!-- The logname is not following username1 -->
+                        <!-- The logname is not following username2 -->
                         {% else %}
                             not following
                             <form action="/following/?target={{url_for('show_following', username=username)}}" method="post" enctype="multipart/form-data">
                                 <input type="submit" name="follow" value="follow"/>
-                                <input type="hidden" name="username" value="{{ following.username1 }}"/>
+                                <input type="hidden" name="username" value="{{ following.username2 }}"/>
                                 <input type="hidden" name="operation" value="follow"/>
                             </form>
                         {% endif %}

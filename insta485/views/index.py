@@ -282,18 +282,19 @@ def show_login():
 
 @insta485.app.route('/accounts/logout/', methods=['POST'])
 def post_logout():
-    if 'logname' not in flask.session:
-        return flask.redirect(flask.url_for('show_login'))
-    logname = flask.session['logname']
+    # 이유 설명
+    # if 'logname' not in flask.session:
+    #     return flask.redirect(flask.url_for('show_login'))
+    # logname = flask.session['logname']
     
-    flask.session['logname'] = None
+    # flask.session['logname'] = None
     flask.session.clear()
     return flask.redirect(flask.url_for('show_login'))
 
 
 @insta485.app.route('/accounts/create/')
 def show_create():
-    if not flask.session.get('logname'):
+    if 'logname' in flask.session:
         return flask.redirect(flask.url_for('show_edit'))
     return flask.render_template("create.html")
 

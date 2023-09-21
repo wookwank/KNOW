@@ -7,10 +7,10 @@
     <body>
         <div class="topbar">
             <div>
-                <a href="/">insta485</a>
+                <a href="{{ url_for('show_index') }}">insta485</a>
             </div>
             <div class="topbar">
-                <a href="/accounts/login"><b>login</b></a>
+                <a href="{{ url_for('show_login') }}"><b>login</b></a>
             </div>
         </div>
 
@@ -25,3 +25,5 @@
             <input type="submit" name="signup" value="sign up"/>
             <input type="hidden" name="operation" value="create"/>
         </form>
+        Have an account?
+        <a href="{{ url_for('show_login') }}"><b>Log in</b></a>
