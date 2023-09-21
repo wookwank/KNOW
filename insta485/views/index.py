@@ -387,8 +387,6 @@ def post_account():
             #compare hashed password and user input
             # set session
             flask.session['logname'] = username
-
-            return flask.redirect(target_url)
                 
         case 'create':
             # Use from POST request 
@@ -440,7 +438,6 @@ def post_account():
 
             # log the user in and redirect to target url
             flask.session['logname'] = username
-            return flask.redirect(target_url)
         
         case 'delete':
             # if user is not logged in abort
@@ -471,7 +468,6 @@ def post_account():
 
             # redirect to URL
             flask.session.clear()
-            return flask.redirect(target_url)
         
         case 'edit_account':
             pass
@@ -480,6 +476,7 @@ def post_account():
     
     if not target_url:
         return flask.redirect(flask.url_for('show_index'))
+    return flask.redirect(target_url)
 
 
 
