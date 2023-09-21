@@ -8,10 +8,8 @@ URLs include:
 import arrow
 import flask
 import hashlib
-import os
 import pathlib
 import uuid
-
 import insta485
 
 # Helper functions library
@@ -94,7 +92,9 @@ def show_user(username):
     connection = insta485.model.get_db()
 
     # Hard Coded logname
-    logname = "awdeorio"
+    if 'logname' not in flask.session:
+        return flask.redirect(flask.url_for('show_login'))
+    logname = flask.session['logname']
 
     # Query users
     users = connection.execute(
@@ -133,8 +133,10 @@ def show_followers(username):
      # Connect to database
     connection = insta485.model.get_db()
 
-    # Hard Coded logname
-    logname = "awdeorio"
+    #  logname
+    if 'logname' not in flask.session:
+        return flask.redirect(flask.url_for('show_login'))
+    logname = flask.session['logname']
 
     # Query following
     followers = connection.execute(
@@ -165,8 +167,10 @@ def show_following(username):
     # Connect to database
     connection = insta485.model.get_db()
 
-    # Hard Coded logname
-    logname = "awdeorio"
+    # logname
+    if 'logname' not in flask.session:
+        return flask.redirect(flask.url_for('show_login'))
+    logname = flask.session['logname']
 
     # Query following
     followers = connection.execute(
@@ -199,8 +203,10 @@ def show_posts(postid):
     # Connect to database
     connection = insta485.model.get_db()
 
-    # Hard Coded logname
-    logname = "awdeorio"
+    #  logname
+    if 'logname' not in flask.session:
+        return flask.redirect(flask.url_for('show_login'))
+    logname = flask.session['logname']
 
     # Query users
     users = connection.execute(
@@ -242,8 +248,10 @@ def show_explore():
     # Connect to database
     connection = insta485.model.get_db()
 
-    # Hard Coded logname
-    logname = "awdeorio"
+    #  logname
+    if 'logname' not in flask.session:
+        return flask.redirect(flask.url_for('show_login'))
+    logname = flask.session['logname']
 
     users = connection.execute(
         "SELECT username, filename FROM users"
@@ -274,19 +282,26 @@ def show_login():
 
 @insta485.app.route('/accounts/logout/', methods=['POST'])
 def post_logout():
+    if 'logname' not in flask.session:
+        return flask.redirect(flask.url_for('show_login'))
+    logname = flask.session['logname']
+    
+    flask.session['logname'] = None
     flask.session.clear()
     return flask.redirect(flask.url_for('show_login'))
 
 
 @insta485.app.route('/accounts/create/')
 def show_create():
-    if 'logname' in flask.session:
+    if not flask.session.get('logname'):
         return flask.redirect(flask.url_for('show_edit'))
     return flask.render_template("create.html")
 
 
 @insta485.app.route('/accounts/delete/')
 def show_delete():
+    if 'logname' not in flask.session:
+        return flask.redirect(flask.url_for('show_login'))
     logname = flask.session['logname']
 
     context = {
@@ -298,6 +313,9 @@ def show_delete():
 
 @insta485.app.route('/accounts/edit/')
 def show_edit():
+    #  logname
+    if 'logname' not in flask.session:
+        return flask.redirect(flask.url_for('show_login'))
     logname = flask.session['logname']
     # check how to get email 
     # email = flask.session['email']
@@ -310,6 +328,9 @@ def show_edit():
 
 @insta485.app.route('/accounts/password/')
 def show_password():
+    #  logname
+    if 'logname' not in flask.session:
+        return flask.redirect(flask.url_for('show_login'))
     logname = flask.session['logname']
 
     context = {
@@ -326,6 +347,7 @@ def show_auth():
 
 @insta485.app.route('/accounts/', methods=['POST'])
 def post_account():
+
      # Connect to database
     connection = insta485.model.get_db()
 
@@ -363,9 +385,10 @@ def post_account():
                     if user['username'] == username:
                         if user['password'] != password:
                             flask.abort(403)
-            
+            #compare hashed password and user input
             # set session
             flask.session['logname'] = username
+
             return flask.redirect(target_url)
                 
         case 'create':
@@ -397,7 +420,6 @@ def post_account():
             hash_obj.update(password_salted.encode('utf-8'))
             password_hash = hash_obj.hexdigest()
             password_db_string = "$".join([algorithm, salt, password_hash])
-            print(password_db_string)
 
             # insert info into db
             cursor = connection.cursor()
@@ -408,10 +430,6 @@ def post_account():
                 (username, password_db_string, fullname, email, file.filename)
             )
 
-            ###########################################
-            ########### Code updated by DK ############
-            ###########################################
-
             # compute base name
             stem = uuid.uuid4().hex
             suffix = pathlib.Path(file.filename).suffix.lower()
@@ -420,10 +438,6 @@ def post_account():
             # save to disk
             path = insta485.app.config["UPLOADS_FOLDER"] / uuid_basename
             file.save(path)
-
-            ###########################################
-            ########### Code updated by DK ############
-            ###########################################
 
             # log the user in and redirect to target url
             flask.session['logname'] = username
@@ -449,7 +463,6 @@ def post_account():
                     path = insta485.app.config["UPLOADS_FOLDER"] / filename
                     path.unlink()
                     
-
             # delete all related entries in all tables
             cursor = connection.cursor()
             cursor.execute(

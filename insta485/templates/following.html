@@ -23,7 +23,7 @@
             {% if following.username1 == username %}
                 <div class="followbar">
                     <div>
-                        <a href="{{ url_for('show_user', username=follower.username2) }}">
+                        <a href="{{ url_for('show_user', username=following.username2) }}">
                             <div class="userimgname">
                                 {% for user in users %}
                                 {% if user.username ==  following.username2 %}
