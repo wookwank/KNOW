@@ -364,9 +364,7 @@ def post_account():
 
     operation = flask.request.form.get('operation')
     target_url = flask.request.args.get('target')
-    if not target_url:
-        return flask.redirect(flask.url_for('show_index'))
-
+   
     match operation:
         case 'login':
             username = flask.request.form.get('username')
@@ -480,5 +478,8 @@ def post_account():
         case 'update_password':
             pass
     
+    if not target_url:
+        return flask.redirect(flask.url_for('show_index'))
+
 
 
