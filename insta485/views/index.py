@@ -20,6 +20,7 @@ def helpers():
         utc = arrow.get(timestamp, tzinfo='America/New_York')
         return utc.humanize()
     return dict(timestamp_handler=timestamp_handler)
+    
 
 # Helper for routing images
 @insta485.app.route('/uploads/<path:filename>')
@@ -382,8 +383,11 @@ def post_account():
             else:
                 for user in users:
                     if user['username'] == username:
-                        if user['password'] != password:
+                        # Hash input with salt obtained from password
+                        password_hashed = hash_password(user['password'].split('$')[1], password)
+                        if user['password'] != password_hashed:
                             flask.abort(403)
+            
             #compare hashed password and user input
             # set session
             flask.session['logname'] = username
@@ -409,24 +413,6 @@ def post_account():
             if username in [user['username'] for user in users]:
                 flask.abort(409)
 
-            # password hashing
-            algorithm = 'sha512'
-            salt = uuid.uuid4().hex
-            hash_obj = hashlib.new(algorithm)
-            password_salted = salt + password
-            hash_obj.update(password_salted.encode('utf-8'))
-            password_hash = hash_obj.hexdigest()
-            password_db_string = "$".join([algorithm, salt, password_hash])
-
-            # insert info into db
-            cursor = connection.cursor()
-            cursor.execute(
-                "INSERT INTO users "
-                "(username, password, fullname, email, filename)"
-                "VALUES (?, ?, ?, ?, ?)",
-                (username, password_db_string, fullname, email, file.filename)
-            )
-
             # compute base name
             stem = uuid.uuid4().hex
             suffix = pathlib.Path(file.filename).suffix.lower()
@@ -435,6 +421,18 @@ def post_account():
             # save to disk
             path = insta485.app.config["UPLOADS_FOLDER"] / uuid_basename
             file.save(path)
+
+            # password hashing
+            password_db_string = hash_password(uuid.uuid4().hex, password)
+        
+            # insert info into db
+            cursor = connection.cursor()
+            cursor.execute(
+                "INSERT INTO users "
+                "(username, password, fullname, email, filename)"
+                "VALUES (?, ?, ?, ?, ?)",
+                (username, password_db_string, fullname, email, uuid_basename)
+            )
 
             # log the user in and redirect to target url
             flask.session['logname'] = username
@@ -470,13 +468,105 @@ def post_account():
             flask.session.clear()
         
         case 'edit_account':
-            pass
+            # if user is not logged in abort
+            if 'logname' not in flask.session:
+                flask.abort(403)
+            logname = flask.session['logname']
+
+            # Use from POST request 
+            fullname = flask.request.form.get('fullname')
+            email = flask.request.form.get('email')
+            file = flask.request.files['file']
+
+            # username or password is empty
+            if not fullname or not email:
+                flask.abort(400)
+            
+            # delete user icon file
+            for user in users:
+                if user['username'] == logname:
+                    path = insta485.app.config["UPLOADS_FOLDER"] / user['filename']
+                    path.unlink()
+            
+            # update user photo into db
+            # compute base name
+            stem = uuid.uuid4().hex
+            suffix = pathlib.Path(file.filename).suffix.lower()
+            uuid_basename = f"{stem}{suffix}"
+
+            # save to disk
+            path = insta485.app.config["UPLOADS_FOLDER"] / uuid_basename
+            file.save(path)
+            cursor = connection.cursor()   
+            # if there is no photo
+            if not file.filename:
+                cursor.execute(
+                "UPDATE users SET "
+                "(fullname, email) ="
+                "(?, ?) WHERE username = ?",
+                (fullname, email, logname)
+                )
+            # if a photo exists
+            else:
+                # update 
+                cursor.execute(
+                "UPDATE users SET "
+                "(fullname, email, filename) = "
+                "(?, ?, ?) WHERE username = ?",
+                (fullname, email, uuid_basename, logname)
+                )
+
         case 'update_password':
-            pass
+            # If user is not logged in abort
+            if 'logname' not in flask.session:
+                flask.abort(403)
+            logname = flask.session['logname']
+
+            # Use from POST request 
+            password_input = flask.request.form.get('password')
+            new_password1 = flask.request.form.get('new_password1')
+            new_password2 = flask.request.form.get('new_password2')
+
+            # One of the fields are empty
+            if not password_input or not new_password1 or not new_password2:
+                flask.abort(400)
+
+            # Check for password match. if no match, abort 403 
+            for user in users:
+                if user['username'] == logname:
+                    # Hash input with salt obtained from password
+                    input_hashed = hash_password(user['password'].split('$')[1], password_input)
+                    if user['password'] != input_hashed:
+                        flask.abort(403)
+
+            # Two passwords don't match
+            if new_password1 != new_password2:
+                flask.abort(401)
+
+            # Hash new password
+            new_password_db_string = hash_password(uuid.uuid4().hex, new_password1)
+
+            # Update database
+            cursor = connection.cursor()   
+            cursor.execute(
+                "UPDATE users SET "
+                "password = ?"
+                "WHERE username = ?",
+                (new_password_db_string,logname,)
+            )
+            
+
     
     if not target_url:
         return flask.redirect(flask.url_for('show_index'))
     return flask.redirect(target_url)
 
-
-
+# Helper function for hashing password
+def hash_password(salt, password):
+    algorithm = 'sha512'
+    hash_obj = hashlib.new(algorithm)
+    salted = salt + password
+    hash_obj.update(salted.encode('utf-8'))
+    hashed = hash_obj.hexdigest()
+    password_string = "$".join([algorithm, salt, hashed])
+    return password_string
