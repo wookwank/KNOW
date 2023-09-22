@@ -18,7 +18,7 @@ import insta485
 def helpers():
     """Define dictionary of helpers."""
     def timestamp_handler(timestamp):
-        utc = arrow.get(timestamp, tzinfo='America/New_York')
+        utc = arrow.utcnow()
         return utc.humanize()
     return {"timestamp_handler": timestamp_handler}
 
