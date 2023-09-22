@@ -127,7 +127,7 @@
                 <form action="/posts/?target={{ url_for('show_user', username=logname) }}"
                     method="post"
                     enctype="multipart/form-data">
-                    <input type="hidden" name="operation" value="delete"/>
+                    <input type="hidden" />
                     <input type="hidden" name="postid" value="{{ postid }}"/>
                     <input type="submit" name="delete" value="delete this post"/>
                   </form>

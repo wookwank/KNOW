@@ -43,8 +43,8 @@
                     {% else %}
                         {% set is_follow = namespace(value=False) %}
                         {% for inner_following in followers %}
-                            {% if inner_following.username2 == logname and
-                                following.username2 == inner_following.username1 %}
+                            {% if inner_following.username1 == logname and
+                                following.username2 == inner_following.username2 %}
                                 {% set is_follow.value = True %}
                             {% endif %}
                         {% endfor %}

@@ -50,7 +50,7 @@
                         <!-- The logname is following username1 -->
                         {% if is_follow.value %}
                             following
-                            <form action="/followers/?target={{url_for('show_followers', username=username)}}" method="post" enctype="multipart/form-data">
+                            <form action="/following/?target={{url_for('show_followers', username=username)}}" method="post" enctype="multipart/form-data">
                                 <input type="submit" name="unfollow" value="unfollow"/>
                                 <input type="hidden" name="username" value="{{ follower.username1 }}"/>
                                 <input type="hidden" name="operation" value="unfollow"/>
@@ -58,7 +58,7 @@
                         <!-- The logname is not following username1 -->
                         {% else %}
                             not following
-                            <form action="/followers/?target={{url_for('show_followers', username=username)}}" method="post" enctype="multipart/form-data">
+                            <form action="/following/?target={{url_for('show_followers', username=username)}}" method="post" enctype="multipart/form-data">
                                 <input type="submit" name="follow" value="follow"/>
                                 <input type="hidden" name="username" value="{{ follower.username1 }}"/>
                                 <input type="hidden" name="operation" value="follow"/>
