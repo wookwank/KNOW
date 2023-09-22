@@ -12,7 +12,7 @@ import pathlib
 import uuid
 import insta485
 
-# Helper functions library
+# Helper functions for jinja templating
 @insta485.app.context_processor
 def helpers():
     """Define dictionary of helpers."""
