@@ -382,12 +382,89 @@ def show_auth():
     return flask.abort(403)
 
 
-@insta485.app.route('/accounts/', methods=['POST'])
-def post_account():
-    """Manage user information (login/delete/create/edit/update)."""
-    # Connect to database
-    connection = insta485.model.get_db()
+def post_account_login(connection, *args):
+    """Login user, helper for post account."""
+    (username, password) = args
+    # fetch users from db
+    users = connection.execute(
+        "SELECT username, password, filename FROM users"
+    )
+    users = users.fetchall()
 
+    # username or password is empty
+    if not username or not password:
+        flask.abort(400)
+
+    # case for username and password authentication fail
+    # user does not exist in db
+    if username not in [user['username'] for user in users]:
+        flask.abort(403)
+    # user exists
+    else:
+        for user in users:
+            if user['username'] == username:
+                # Hash input with salt obtained from password
+                password_hashed = hash_password(
+                    user['password'].split('$')[1],
+                    password
+                    )
+                if user['password'] != password_hashed:
+                    flask.abort(403)
+
+    # compare hashed password and user input
+    # set session
+    flask.session['logname'] = username
+
+
+def post_account_create(connection, *args):
+    """Create user, helper for post account."""
+    (username, password, fullname, email, file) = args
+    # fetch users from db
+    users = connection.execute(
+        "SELECT username, password, filename FROM users"
+    )
+    users = users.fetchall()
+
+    # If any are empty, abort(400)
+    if (not username
+            or not password
+            or not fullname
+            or not email
+            or not file.filename):
+        flask.abort(400)
+
+    # if user tries to make username that exists in db
+    if username in [user['username'] for user in users]:
+        flask.abort(409)
+
+    # compute base name
+    stem = uuid.uuid4().hex
+    suffix = pathlib.Path(file.filename).suffix.lower()
+    uuid_basename = f"{stem}{suffix}"
+
+    # save to disk
+    path = insta485.app.config["UPLOADS_FOLDER"] / uuid_basename
+    file.save(path)
+
+    # password hashing
+    password_db_string = hash_password(uuid.uuid4().hex, password)
+
+    # insert info into db
+    cursor = connection.cursor()
+    cursor.execute(
+        "INSERT INTO users "
+        "(username, password, fullname, email, filename)"
+        "VALUES (?, ?, ?, ?, ?)",
+        (username, password_db_string, fullname, email, uuid_basename)
+    )
+
+    # log the user in and redirect to target url
+    flask.session['logname'] = username
+
+
+def post_account_delete(connection):
+    """Delete user, helper for post account."""
+    # fetch users from db
     users = connection.execute(
         "SELECT username, password, filename FROM users"
     )
@@ -398,205 +475,184 @@ def post_account():
     )
     posts = posts.fetchall()
 
+    # if user is not logged in abort
+    if 'logname' not in flask.session:
+        flask.abort(403)
+    logname = flask.session['logname']
+
+    # delete post files created by user
+    for post in posts:
+        if post['owner'] == logname:
+            filename = post['filename']
+            path = insta485.app.config["UPLOADS_FOLDER"] / filename
+            path.unlink()
+
+    # delete user icon file
+    for user in users:
+        if user['username'] == logname:
+            filename = user['filename']
+            path = insta485.app.config["UPLOADS_FOLDER"] / filename
+            path.unlink()
+
+    # delete all related entries in all tables
+    cursor = connection.cursor()
+    cursor.execute(
+        "DELETE FROM users WHERE username = ?",
+        (logname,)
+    )
+
+    # redirect to URL
+    flask.session.clear()
+
+
+def post_account_edit_account(connection, *args):
+    """Edit user account, helper for post account."""
+    (fullname, email, file) = args
+    # fecth users from db
+    users = connection.execute(
+        "SELECT username, password, filename FROM users"
+    )
+    users = users.fetchall()
+
+    # if user is not logged in abort
+    if 'logname' not in flask.session:
+        flask.abort(403)
+    logname = flask.session['logname']
+
+    # username or password is empty
+    if not fullname or not email:
+        flask.abort(400)
+
+    # delete user icon file
+    for user in users:
+        if user['username'] == logname:
+            path = (insta485.app.config["UPLOADS_FOLDER"] /
+                    user['filename'])
+            path.unlink()
+
+    # update user photo into db
+    # compute base name
+    stem = uuid.uuid4().hex
+    suffix = pathlib.Path(file.filename).suffix.lower()
+    uuid_basename = f"{stem}{suffix}"
+
+    # save to disk
+    path = insta485.app.config["UPLOADS_FOLDER"] / uuid_basename
+    file.save(path)
+
+    cursor = connection.cursor()
+    # if there is no photo
+    if not file.filename:
+        cursor.execute(
+            "UPDATE users SET "
+            "(fullname, email) ="
+            "(?, ?) WHERE username = ?",
+            (fullname, email, logname)
+        )
+    # if a photo exists
+    else:
+        # update
+        cursor.execute(
+            "UPDATE users SET "
+            "(fullname, email, filename) = "
+            "(?, ?, ?) WHERE username = ?",
+            (fullname, email, uuid_basename, logname)
+        )
+
+
+def post_account_update_password(connection, *args):
+    """Update user password, helper for post account."""
+    (password_input, new_password1, new_password2) = args
+    # fecth users from db
+    users = connection.execute(
+        "SELECT username, password, filename FROM users"
+    )
+    users = users.fetchall()
+
+    # If user is not logged in abort
+    if 'logname' not in flask.session:
+        flask.abort(403)
+    logname = flask.session['logname']
+
+    # One of the fields are empty
+    if not password_input or not new_password1 or not new_password2:
+        flask.abort(400)
+
+    # Check for password match. if no match, abort 403
+    for user in users:
+        if user['username'] == logname:
+            # Hash input with salt obtained from password
+            hashed_in = hash_password(
+                user['password'].split('$')[1],
+                password_input
+                )
+            if user['password'] != hashed_in:
+                flask.abort(403)
+
+    # Two passwords don't match
+    if new_password1 != new_password2:
+        flask.abort(401)
+
+    # Hash new password
+    new_password_db_string = hash_password(uuid.uuid4().hex, new_password1)
+
+    # Update database
+    cursor = connection.cursor()
+    cursor.execute(
+        "UPDATE users SET "
+        "password = ? "
+        "WHERE username = ?",
+        (new_password_db_string, logname, )
+    )
+
+
+@insta485.app.route('/accounts/', methods=['POST'])
+def post_account():
+    """Manage user information (login/delete/create/edit/update)."""
+    # Connect to database
+    connection = insta485.model.get_db()
+
+    # fetch operation type
     operation = flask.request.form.get('operation')
-    target_url = flask.request.args.get('target')
 
     match operation:
         case 'login':
-            username = flask.request.form.get('username')
-            password = flask.request.form.get('password')
-
-            # username or password is empty
-            if not username or not password:
-                flask.abort(400)
-
-            # case for username and password authentication fail
-            # user does not exist in db
-            if username not in [user['username'] for user in users]:
-                flask.abort(403)
-            # user exists
-            else:
-                for user in users:
-                    if user['username'] == username:
-                        # Hash input with salt obtained from password
-                        password_hashed = hash_password(
-                            user['password'].split('$')[1],
-                            password
-                            )
-                        if user['password'] != password_hashed:
-                            flask.abort(403)
-
-            # compare hashed password and user input
-            # set session
-            flask.session['logname'] = username
+            post_account_login(
+                connection,
+                flask.request.form.get('username'),
+                flask.request.form.get('password')
+            )
 
         case 'create':
-            # Use from POST request
-            username = flask.request.form.get('username')
-            password = flask.request.form.get('password')
-            fullname = flask.request.form.get('fullname')
-            email = flask.request.form.get('email')
-            file = flask.request.files['file']
-
-            # If any are empty, abort(400)
-            if (not username
-                    or not password
-                    or not fullname
-                    or not email
-                    or not file.filename):
-                flask.abort(400)
-
-            # if user tries to make username that exists in db
-            if username in [user['username'] for user in users]:
-                flask.abort(409)
-
-            # compute base name
-            stem = uuid.uuid4().hex
-            suffix = pathlib.Path(file.filename).suffix.lower()
-            uuid_basename = f"{stem}{suffix}"
-
-            # save to disk
-            path = insta485.app.config["UPLOADS_FOLDER"] / uuid_basename
-            file.save(path)
-
-            # password hashing
-            password_db_string = hash_password(uuid.uuid4().hex, password)
-
-            # insert info into db
-            cursor = connection.cursor()
-            cursor.execute(
-                "INSERT INTO users "
-                "(username, password, fullname, email, filename)"
-                "VALUES (?, ?, ?, ?, ?)",
-                (username, password_db_string, fullname, email, uuid_basename)
+            post_account_create(
+                connection,
+                flask.request.form.get('username'),
+                flask.request.form.get('password'),
+                flask.request.form.get('fullname'),
+                flask.request.form.get('email'),
+                flask.request.files['file']
             )
-
-            # log the user in and redirect to target url
-            flask.session['logname'] = username
 
         case 'delete':
-            # if user is not logged in abort
-            if 'logname' not in flask.session:
-                flask.abort(403)
-            logname = flask.session['logname']
-
-            # delete post files created by user
-            for post in posts:
-                if post['owner'] == logname:
-                    filename = post['filename']
-                    path = insta485.app.config["UPLOADS_FOLDER"] / filename
-                    path.unlink()
-
-            # delete user icon file
-            for user in users:
-                if user['username'] == logname:
-                    filename = user['filename']
-                    path = insta485.app.config["UPLOADS_FOLDER"] / filename
-                    path.unlink()
-
-            # delete all related entries in all tables
-            cursor = connection.cursor()
-            cursor.execute(
-                "DELETE FROM users WHERE username = ?",
-                (logname,)
-            )
-
-            # redirect to URL
-            flask.session.clear()
+            post_account_delete(connection)
 
         case 'edit_account':
-            # if user is not logged in abort
-            if 'logname' not in flask.session:
-                flask.abort(403)
-            logname = flask.session['logname']
-
-            # Use from POST request
-            fullname = flask.request.form.get('fullname')
-            email = flask.request.form.get('email')
-            file = flask.request.files['file']
-
-            # username or password is empty
-            if not fullname or not email:
-                flask.abort(400)
-
-            # delete user icon file
-            for user in users:
-                if user['username'] == logname:
-                    path = (insta485.app.config["UPLOADS_FOLDER"] /
-                            user['filename'])
-                    path.unlink()
-
-            # update user photo into db
-            # compute base name
-            stem = uuid.uuid4().hex
-            suffix = pathlib.Path(file.filename).suffix.lower()
-            uuid_basename = f"{stem}{suffix}"
-
-            # save to disk
-            path = insta485.app.config["UPLOADS_FOLDER"] / uuid_basename
-            file.save(path)
-
-            cursor = connection.cursor()
-            # if there is no photo
-            if not file.filename:
-                cursor.execute(
-                    "UPDATE users SET "
-                    "(fullname, email) ="
-                    "(?, ?) WHERE username = ?",
-                    (fullname, email, logname)
-                )
-            # if a photo exists
-            else:
-                # update
-                cursor.execute(
-                    "UPDATE users SET "
-                    "(fullname, email, filename) = "
-                    "(?, ?, ?) WHERE username = ?",
-                    (fullname, email, uuid_basename, logname)
-                )
+            post_account_edit_account(
+                connection,
+                flask.request.form.get('fullname'),
+                flask.request.form.get('email'),
+                flask.request.files['file']
+            )
 
         case 'update_password':
-            # If user is not logged in abort
-            if 'logname' not in flask.session:
-                flask.abort(403)
-            logname = flask.session['logname']
-
-            # Use from POST request
-            password_input = flask.request.form.get('password')
-            new_password1 = flask.request.form.get('new_password1')
-            new_password2 = flask.request.form.get('new_password2')
-
-            # One of the fields are empty
-            if not password_input or not new_password1 or not new_password2:
-                flask.abort(400)
-
-            # Check for password match. if no match, abort 403
-            for user in users:
-                if user['username'] == logname:
-                    # Hash input with salt obtained from password
-                    hashed_in = hash_password(
-                        user['password'].split('$')[1],
-                        password_input
-                        )
-                    if user['password'] != hashed_in:
-                        flask.abort(403)
-
-            # Two passwords don't match
-            if new_password1 != new_password2:
-                flask.abort(401)
-
-            # Hash new password
-            new_password_db_string = hash_password(uuid.uuid4().hex,
-                                                   new_password1)
-
-            # Update database
-            cursor = connection.cursor()
-            cursor.execute(
-                "UPDATE users SET "
-                "password = ? "
-                "WHERE username = ?",
-                (new_password_db_string, logname, )
+            post_account_update_password(
+                connection,
+                flask.request.form.get('password'),
+                flask.request.form.get('new_password1'),
+                flask.request.form.get('new_password2')
             )
+
+    target_url = flask.request.args.get('target')
 
     if not target_url:
         return flask.redirect(flask.url_for('show_index'))

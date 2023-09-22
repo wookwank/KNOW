@@ -113,7 +113,7 @@
             <!--if logname == username-->
             {% if logname == username %}
                 <form action="/post/?target={{url_for('show_user', username=username)}}"
-                method="post"enctype="multipart/form-data">
+                method="post" enctype="multipart/form-data">
                     <input type="file" name="file" accept="image/*" required/>
                     <input type="submit" name="create_post" value="upload new post"/>
                     <input type="hidden" name="operation" value="create"/>
