@@ -27,12 +27,12 @@ def helpers():
 @insta485.app.route('/uploads/<path:filename>')
 def static_file(filename):
     """Resolve image path."""
+    path_app_var = insta485.app.config['UPLOADS_FOLDER']
     if 'logname' not in flask.session:
         flask.abort(403)
-    if filename not in os.listdir('var/uploads'):
+    if filename not in os.listdir(path_app_var):
         flask.abort(404)
 
-    path_app_var = insta485.app.config['UPLOADS_FOLDER']
     return flask.send_from_directory(path_app_var, filename)
 
 
