@@ -24,7 +24,7 @@ def helpers():
 
 
 # Helper for routing images
-@insta485.app.route('/uploads/<path:filename>')
+@insta485.app.route(insta485.app.config['UPLOADS_FOLDER'] / '<path:filename>')
 def static_file(filename):
     """Resolve image path."""
     path_app_var = insta485.app.config['UPLOADS_FOLDER']
