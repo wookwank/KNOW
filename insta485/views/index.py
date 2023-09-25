@@ -64,22 +64,21 @@ def show_index():
     # Connect to database
     connection = insta485.model.get_db()
 
-    # Hard Coded logname
-    # logname = "awdeorio"
-
     # Query users
     users = connection.execute(
         "SELECT username, filename FROM users"
     )
     users = users.fetchall()
 
+    # Query following
+    following = connection.execute(
+        "SELECT username1, username2 FROM following "
+    )
+    following = following.fetchall()
+
     # Query posts
     posts = connection.execute(
         "SELECT * FROM posts "
-        "WHERE owner = ? OR "
-        "(owner IN (SELECT username1 "
-        "FROM following WHERE username2 = ?))",
-        (logname, logname)
     )
     posts = posts.fetchall()
 
@@ -101,7 +100,8 @@ def show_index():
         "posts": posts,
         "comments": comments,
         "users": users,
-        "likes": likes
+        "likes": likes,
+        "following": following
     }
     return flask.render_template("index.html", **context)
 

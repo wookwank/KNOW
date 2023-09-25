@@ -18,88 +18,96 @@
             </div>
         </div>
         {% for post in posts|reverse %}
-            <!-- loop through likes to set like count and liked -->
-            {% set like_count = namespace(value=0) %}
-            {% set liked = namespace(value=False) %}
-            {% for like_row in likes %}
-                {% if like_row.postid == post.postid %}
-                    {% set like_count.value = like_count.value + 1 %}
-                    {% if like_row.owner == logname %}
-                        {% set liked.value =  True %}
-                    {% endif %}
+            {% set follows = namespace(value=False) %}
+            {% for follower in following %}
+                {% if follower.username1 == logname and follower.username2 == post.owner%}
+                    {% set follows.value = True %}
                 {% endif %}
             {% endfor %}
+            <!-- loop through likes to set like count and liked -->
+            {% if follows.value == True or post.owner == logname%}
+                {% set like_count = namespace(value=0) %}
+                {% set liked = namespace(value=False) %}
+                {% for like_row in likes %}
+                    {% if like_row.postid == post.postid %}
+                        {% set like_count.value = like_count.value + 1 %}
+                        {% if like_row.owner == logname %}
+                            {% set liked.value =  True %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
             <!----------------------------------------------------->
                     
-            <div class="post">
-                <div class="topbar">
-                    <div>
-                        <a href="{{ url_for('show_user', username=post.owner) }}">
-                            <div class="userimgname">
-                                {% for user in users %}
-                                {% if user.username ==  post.owner %}
-                                <img src="/uploads/{{user.filename}}" alt="{{post.owner}} img">
-                                {% endif %}
-                                {% endfor %}
-                                <div class="blank"></div>
-                                <b>{{post.owner}}</b>
-                            </div>
-                        </a>
+                <div class="post">
+                    <div class="topbar">
+                        <div>
+                            <a href="{{ url_for('show_user', username=post.owner) }}">
+                                <div class="userimgname">
+                                    {% for user in users %}
+                                    {% if user.username ==  post.owner %}
+                                    <img src="/uploads/{{user.filename}}" alt="{{post.owner}} img">
+                                    {% endif %}
+                                    {% endfor %}
+                                    <div class="blank"></div>
+                                    <b>{{post.owner}}</b>
+                                </div>
+                            </a>
+                        </div>
+                        <div>
+                            <a href="{{ url_for('show_posts', postid=post.postid) }}">
+                                {{ timestamp_handler(post.created) }}
+                            </a>
+                        </div>
                     </div>
-                    <div>
-                        <a href="{{ url_for('show_posts', postid=post.postid) }}">
-                            {{ timestamp_handler(post.created) }}
-                        </a>
-                    </div>
-                </div>
-                <img src="/uploads/{{post.filename}}" alt="post {{post.postid}} image">
-                <div class="content">
-                    {% if like_count.value == 1 %}
-                    <p>{{like_count.value}} like</p>
-                    {% else %}
-                    <p>{{like_count.value}} likes</p>
-                    {% endif %}
-                    {% for comment in comments %}
-                        {% if comment.postid == post.postid %}
-                            <p>
-                                <a href="{{ url_for('show_user', username=comment.owner) }}">
-                                    <b>{{comment.owner}}</b>
-                                </a>
-                                {{comment.text}}
-                            </p>
+                    <img src="/uploads/{{post.filename}}" alt="post {{post.postid}} image">
+                    <div class="content">
+                        {% if like_count.value == 1 %}
+                        <p>{{like_count.value}} like</p>
+                        {% else %}
+                        <p>{{like_count.value}} likes</p>
                         {% endif %}
-                    {% endfor %}
-                </div>
-                <div class="content">
-                    {% if liked.value == True %}
-                        <form action="/likes/?target={{url_for('show_index')}}" 
+                        {% for comment in comments %}
+                            {% if comment.postid == post.postid %}
+                                <p>
+                                    <a href="{{ url_for('show_user', username=comment.owner) }}">
+                                        <b>{{comment.owner}}</b>
+                                    </a>
+                                    {{comment.text}}
+                                </p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="content">
+                        {% if liked.value == True %}
+                            <form action="/likes/?target={{url_for('show_index')}}" 
+                                method="post"
+                                enctype="multipart/form-data">
+                                <input type="hidden" name="operation" value="unlike"/>
+                                <input type="hidden" name="postid" value="{{ post.postid }}"/>
+                                <input type="submit" name="unlike" value="unlike"/>
+                            </form>
+                        {% else %}
+                            <form action="/likes/?target={{url_for('show_index')}}"
+                                method="post"
+                                enctype="multipart/form-data">
+                                <input type="hidden" name="operation" value="like"/>
+                                <input type="hidden" name="postid" value="{{ post.postid }}"/>
+                                <input type="submit" name="like" value="like"/>
+                            </form>               
+                        {% endif %}
+                    </div>
+                    <div class="content">
+                        <form action="/comments/?target={{url_for('show_index')}}"
                             method="post"
                             enctype="multipart/form-data">
-                            <input type="hidden" name="operation" value="unlike"/>
+                            <input type="hidden" name="operation" value="create"/>
                             <input type="hidden" name="postid" value="{{ post.postid }}"/>
-                            <input type="submit" name="unlike" value="unlike"/>
+                            <input type="text" name="text" required/>
+                            <input type="submit" name="comment" value="comment"/>
                         </form>
-                    {% else %}
-                        <form action="/likes/?target={{url_for('show_index')}}"
-                            method="post"
-                            enctype="multipart/form-data">
-                            <input type="hidden" name="operation" value="like"/>
-                            <input type="hidden" name="postid" value="{{ post.postid }}"/>
-                            <input type="submit" name="like" value="like"/>
-                        </form>               
-                    {% endif %}
+                    </div>
                 </div>
-                <div class="content">
-                    <form action="/comments/?target={{url_for('show_index')}}"
-                        method="post"
-                        enctype="multipart/form-data">
-                        <input type="hidden" name="operation" value="create"/>
-                        <input type="hidden" name="postid" value="{{ post.postid }}"/>
-                        <input type="text" name="text" required/>
-                        <input type="submit" name="comment" value="comment"/>
-                    </form>
-                </div>
-            </div>
+            {% endif %}
         {% endfor %}        
     </body>
 </html>
