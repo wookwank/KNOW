@@ -83,7 +83,7 @@
             <!--Print num_post, num_follower, num_following-->
             <p>
                 <!--Print Post-->
-                {% if post_count == 1 %}
+                {% if post_count.value == 1 %}
                 {{post_count.value}} post
                 {% else %}
                 {{post_count.value}} posts
@@ -91,7 +91,7 @@
                 <!--Print Followers-->
                 <a href="{{ url_for('show_followers', username=username) }}">
                     <b>
-                        {% if follower_count == 1 %}
+                        {% if follower_count.value == 1 %}
                         {{follower_count.value}} follower
                         {% else %}
                         {{follower_count.value}} followers
@@ -112,7 +112,7 @@
 
             <!--if logname == username-->
             {% if logname == username %}
-                <form action="/post/?target={{url_for('show_user', username=username)}}"
+                <form action="/posts/?target={{url_for('show_user', username=username)}}"
                 method="post" enctype="multipart/form-data">
                     <input type="file" name="file" accept="image/*" required/>
                     <input type="submit" name="create_post" value="upload new post"/>
