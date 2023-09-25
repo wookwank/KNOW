@@ -523,13 +523,6 @@ def post_account_edit_account(connection, *args):
     if not fullname or not email:
         flask.abort(400)
 
-    # delete user icon file
-    for user in users:
-        if user['username'] == logname:
-            path = (insta485.app.config["UPLOADS_FOLDER"] /
-                    user['filename'])
-            path.unlink()
-
     # update user photo into db
     # compute base name
     stem = uuid.uuid4().hex
@@ -552,6 +545,13 @@ def post_account_edit_account(connection, *args):
     # if a photo exists
     else:
         # update
+        # delete user icon file
+        for user in users:
+            if user['username'] == logname:
+                path = (insta485.app.config["UPLOADS_FOLDER"]
+                        / user['filename'])
+                path.unlink()
+
         cursor.execute(
             "UPDATE users SET "
             "(fullname, email, filename) = "
