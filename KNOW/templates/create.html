@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Know</title>
+    <link rel="icon" href="src/logo.png" />
+    <link rel="stylesheet" type="text/css" href="style/style.css" />
+  </head>
+
+  <body>
+    <span class="top">
+      <a href="{{url_for('show_index')}}">
+        <img id="logo" src="src/logo.png" alt="logo" />
+      </a>
+      &nbsp; &nbsp;
+      <span class="small-line"> &nbsp; Know</span>
+    </span>
+
+    <hr class="separating-line" />
+
+    <div class="login-box">
+      <h1>Sign Up</h1>
+      <form
+        id="signup-form"
+        action="{{url_for('account_ops')}}"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <p>Photo <input type="file" name="file" /></p>
+        <p>Username <input type="text" name="username" required /></p>
+        <p>Email <input type="text" name="email" required /></p>
+        <p>Password <input type="password" name="password" required /></p>
+        <input
+          class="login-button"
+          type="submit"
+          name="signup"
+          value="sign up"
+        />
+        <input type="hidden" name="operation" value="create" />
+      </form>
+      <p>
+        Have an account? <a href="{{ url_for('show_login') }}"><b>Log in</b></a>
+      </p>
+    </div>
+  </body>
+</html>

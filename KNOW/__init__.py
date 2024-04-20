@@ -5,19 +5,19 @@ import flask
 app = flask.Flask(__name__)  # pylint: disable=invalid-name
 
 # Read settings from config module (insta485/config.py)
-app.config.from_object('insta485.config')
+app.config.from_object('KNOW.config')
 
 # Overlay settings read from a Python file whose path is set in the environment
-# variable INSTA485_SETTINGS. Setting this environment variable is optional.
+# variable KNOW_SETTINGS. Setting this environment variable is optional.
 # Docs: http://flask.pocoo.org/docs/latest/config/
 #
 # EXAMPLE:
-# $ export INSTA485_SETTINGS=secret_key_config.py
-app.config.from_envvar('INSTA485_SETTINGS', silent=True)
+# $ export KNOW_SETTINGS=secret_key_config.py
+app.config.from_envvar('KNOW_SETTINGS', silent=True)
 
 # Tell our app about views and model.  This is dangerously close to a
 # circular import, which is naughty, but Flask was designed that way.
 # (Reference http://flask.pocoo.org/docs/patterns/packages/)  We're
 # going to tell pylint and pycodestyle to ignore this coding style violation.
-import insta485.views  # noqa: E402  pylint: disable=wrong-import-position
-import insta485.model  # noqa: E402  pylint: disable=wrong-import-position
+import KNOW.views  # noqa: E402  pylint: disable=wrong-import-position
+import KNOW.model  # noqa: E402  pylint: disable=wrong-import-position
