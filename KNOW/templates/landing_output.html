@@ -741,6 +741,25 @@
         color: var(--color-black);
         font-family: var(--presets-body2);
       }
+      .no-underline {
+        text-decoration: none; /* Remove underline */
+        color: inherit; /* Keep the original color */
+      }
+      .text-container {
+        position: absolute; /* Position absolutely */
+        top: 180px; /* Distance from the top */
+        right: 140px; /* Distance from the right */
+        text-align: right; /* Align text to the right */
+      }
+
+      .text1 {
+        margin-bottom: 10px; /* Add margin between the two texts */
+        margin-right: 55px; /* Add margin between the two texts */
+      }
+      .text2 {
+        margin-bottom: 10px; /* Add margin between the two texts */
+        margin-right: -10px; /* Add margin between the two texts */
+      }
     </style>
 
     <link rel="stylesheet" href="./global.css" />
@@ -756,26 +775,32 @@
   </head>
   <body>
     <div class="translator-landing-page">
-      <div class="navigation">
-        <div class="frame">
-          <div class="know">Know</div>
-          <div class="my-profile">My profile</div>
-        </div>
-        <div class="frame1">
-          <div class="setting">setting</div>
-          <div class="setting">saved translation</div>
-        </div>
-      </div>
       <div class="frame3">
         <div class="frame-child"></div>
         <div class="navigation1">
           <div class="frame4">
-            <div class="know1">Know</div>
-            <div class="my-profile1">My profile</div>
+            <div class="know1">
+              <a href="{{ url_for('show_landing_input') }}" class="no-underline"
+                >Know</a
+              >
+            </div>
+            <div class="my-profile1">
+              <a href="{{ url_for('show_profile') }}" class="no-underline"
+                >My profile</a
+              >
+            </div>
           </div>
           <div class="frame5">
-            <div class="setting">setting</div>
-            <div class="setting">saved translation</div>
+            <div class="setting">
+              <a href="{{ url_for('show_setting') }}" class="no-underline"
+                >setting</a
+              >
+            </div>
+            <div class="setting">
+              <a href="{{ url_for('show_translation') }}" class="no-underline"
+                >saved translation</a
+              >
+            </div>
           </div>
           <div class="frame6">
             <div class="cart-button">
@@ -881,8 +906,13 @@
             <div class="frame22">
               <b class="history">History </b>
               <div class="frame23">
-                <div class="delete-all">delete all</div>
-                <div class="delete-all1">delete all</div>
+                <div class="delete-all">
+                  <a
+                    href="{{ url_for('show_landing_input') }}"
+                    class="no-underline"
+                    >delete all</a
+                  >
+                </div>
               </div>
             </div>
           </div>
@@ -907,6 +937,10 @@
           <div class="divider"></div>
         </div>
       </div>
+    </div>
+    <div class="text-container">
+      <div class="text1">Hi, how are you</div>
+      <div class="text2">안녕하세요, 잘 지내세요?</div>
     </div>
   </body>
 </html>
