@@ -1,4 +1,4 @@
-"""Insta485 package initializer."""
+"""KNOW package initializer."""
 import flask
 
 # app is a single object used by all the code modules in this package
